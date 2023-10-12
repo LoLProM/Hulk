@@ -1,0 +1,15 @@
+/Users/nadia/Hulk/bin/Debug/net7.0/Hulk
+/Users/nadia/Hulk/bin/Debug/net7.0/Hulk.deps.json
+/Users/nadia/Hulk/bin/Debug/net7.0/Hulk.runtimeconfig.json
+/Users/nadia/Hulk/bin/Debug/net7.0/Hulk.dll
+/Users/nadia/Hulk/bin/Debug/net7.0/Hulk.pdb
+/Users/nadia/Hulk/obj/Debug/net7.0/Hulk.csproj.AssemblyReference.cache
+/Users/nadia/Hulk/obj/Debug/net7.0/Hulk.GeneratedMSBuildEditorConfig.editorconfig
+/Users/nadia/Hulk/obj/Debug/net7.0/Hulk.AssemblyInfoInputs.cache
+/Users/nadia/Hulk/obj/Debug/net7.0/Hulk.AssemblyInfo.cs
+/Users/nadia/Hulk/obj/Debug/net7.0/Hulk.csproj.CoreCompileInputs.cache
+/Users/nadia/Hulk/obj/Debug/net7.0/Hulk.dll
+/Users/nadia/Hulk/obj/Debug/net7.0/refint/Hulk.dll
+/Users/nadia/Hulk/obj/Debug/net7.0/Hulk.pdb
+/Users/nadia/Hulk/obj/Debug/net7.0/Hulk.genruntimeconfig.cache
+/Users/nadia/Hulk/obj/Debug/net7.0/ref/Hulk.dll
