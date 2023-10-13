@@ -112,6 +112,9 @@ public class HulkEvaluator
                 return !Equals(left, right);
             case TokenType.ExponentialToken:
                 return Pow((int)left, (int)right);
+            case TokenType.SingleEqualToken:
+                var a = (object)left;
+                return a = (object)right;
             default:
                 throw new Exception($"Unexpected binary operator {binaryExpression.OperatorToken.Type}");
         }

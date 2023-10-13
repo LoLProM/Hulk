@@ -12,13 +12,13 @@ class Program
     public static void Main(string[] args)
     {
 
-        foreach (var input in inputs)
-        // while (true)
+        // foreach (var input in inputs)
+        while (true)
         {
-            // Console.Write("> ");
+            Console.Write("> ");
             // var input = Console.ReadLine();
-            // var input = "let a = 7 in a = false;";
-            Console.WriteLine($"> {input}");
+            var input = "let a = 2 in let b = a * 2 in b + 1;";
+            // Console.WriteLine($"> {input}");
             try
             {
                 if (string.IsNullOrEmpty(input))

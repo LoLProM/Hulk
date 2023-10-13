@@ -11,7 +11,7 @@ namespace HulkProject
             Identifier = identifier;
             Expression = expression;
             LetChildExpression = letChildExpression;
-            ExpressionType = expression.ExpressionType;
+            ExpressionType = Expression.ExpressionType;
         }
         public Token Identifier { get; }
         public HulkExpression Expression { get; }

@@ -7,7 +7,7 @@ public class FunctionDeclarationExpression : HulkExpression
         FunctionName = functionName;
         Arguments = parameters;
         FunctionBody = functionBody;
-        ExpressionType = functionBody.ExpressionType;
+        ExpressionType = FunctionBody.ExpressionType;
     }
     public string FunctionName { get; }
     public List<string> Arguments { get; }

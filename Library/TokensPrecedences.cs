@@ -20,6 +20,8 @@ public static class TokensPrecedences
     {
         switch (type)
         {
+            case TokenType.SingleEqualToken:
+                return 8;
             case TokenType.ExponentialToken:
                 return 6;
                 

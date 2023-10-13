@@ -6,7 +6,7 @@ public class Let_In_Expression : HulkExpression
     {
         LetExpression = letExpression;
         InExpression = inExpression;
-        ExpressionType = inExpression.ExpressionType;
+        ExpressionType = InExpression.ExpressionType;
     }
     public LetExpression LetExpression { get; }
     public HulkExpression InExpression { get; }

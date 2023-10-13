@@ -20,16 +20,16 @@ public class HulkBinaryExpression : HulkExpression
             {
                 return null!;
             }
+            else if (Left.ExpressionType == typeof(int) && Right.ExpressionType == typeof(int))
+            {
+                return typeof(int);
+            }
             if (Left is HulkBinaryExpression p)
             {
                 if (p.Left == null && p.Right == null)
                 {
                     return null!;
                 }
-            }
-            else if (Left.ExpressionType == typeof(int) && Right.ExpressionType == typeof(int))
-            {
-                return typeof(int);
             }
         }
 
@@ -236,14 +236,26 @@ public class HulkBinaryExpression : HulkExpression
                 return typeof(int);
             }
         }
+        else if (OperatorToken.Type is TokenType.SingleEqualToken)
+        {
+            if (Left.ExpressionType == Right.ExpressionType && Left.ExpressionType == typeof(int))
+            {
+                return typeof(int);
+            }
+            else if (Left.ExpressionType == Right.ExpressionType && Left.ExpressionType == typeof(bool))
+            {
+                return typeof(bool);
+            }
+            throw new Exception($"Cannot assign {Left.ExpressionType} to {Right.ExpressionType}");
+        }
         throw new InvalidOperationException($"Invalid expression: Can't operate {Left.ExpressionType} with {Right.ExpressionType} using {OperatorToken.Text}");
     }
 
     public override HulkExpression UseScope(Scope functionScope)
     {
-        return new HulkBinaryExpression( 
-            Left.UseScope(functionScope), 
-            OperatorToken, 
+        return new HulkBinaryExpression(
+            Left.UseScope(functionScope),
+            OperatorToken,
             Right.UseScope(functionScope)
             );
     }

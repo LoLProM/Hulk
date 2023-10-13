@@ -74,6 +74,21 @@ class Parser
         }
         return functionDeclaration;
     }
+
+    private string GetFunctionBody()
+    {
+        var result = "";
+        for (int i = CurrentToken.Position; i < tokens.Count; i++)
+        {
+            if (CurrentToken.Type == TokenType.ColonToken)
+            {
+                break;
+            }
+            result += tokens[i].Text;
+        }
+        return result;
+    }
+
     private HulkExpression ParseFunctionBody(Scope scope)
     {
         return ParseExpression(scope);
@@ -214,9 +229,9 @@ class Parser
             throw new Exception($"Function {identifier} does not have {parameters.Count} parameters but {Functions[identifier].Arguments.Count} parameters");
         }
 
-        var functionDeclaration = Parser.Functions[identifier];
+        var functionDeclaration = Functions[identifier];
         var functionScope = GetFunctionScope(parameters, functionDeclaration.Arguments);
-
+        
         return functionDeclaration.FunctionBody.UseScope(functionScope);
     }
     public Scope GetFunctionScope(List<HulkExpression> functionParameters, List<string> functionDeclarationArguments)
