@@ -70,6 +70,10 @@ class Lexer
         {
             return new Token(match.Value, TokenType.FunctionKeyword, match.Index, match.Value);
         }
+        else if (IsPrintKeyword(match))
+        {
+            return new Token(match.Value, TokenType.PrintKeyword, match.Index, match.Value);
+        }
         else if (IsFunctionName(match))
         {
             return new Token(match.Value, TokenType.FunctionNameToken,match.Index,match.Value);
@@ -123,6 +127,16 @@ class Lexer
                 return new Token("=>", TokenType.ArrowToken, match.Index, null);
         }
         return new Token(match.Value, TokenType.WrongToken, match.Index, null);
+    }
+
+    private bool IsPrintKeyword(Match match)
+    {
+        if (match.Value == "print")
+        {
+            position++;
+            return true;
+        }
+        return false;
     }
 
     private bool IsFunctionName(Match match)

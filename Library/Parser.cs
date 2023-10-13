@@ -62,8 +62,8 @@ class Parser
         
         var functionBody = ParseFunctionBody(functionScope);
 
-
         var functionDeclaration = new FunctionDeclarationExpression(functionName.Text, functionParameters, functionBody);
+
         if (!Functions.ContainsKey(functionName.Text))
         {
             Functions.Add(functionName.Text, functionDeclaration);
@@ -102,6 +102,10 @@ class Parser
         while (CurrentToken.Type == TokenType.ColonToken)
         {
             TokenAhead();
+            if (CurrentToken.Type is not TokenType.Identifier)
+            {
+                throw new Exception($"Parameters must be a valid identifier");
+            }
             parameters.Add(CurrentToken.Text);
             TokenAhead();
         }
@@ -177,6 +181,8 @@ class Parser
     {
         switch (CurrentToken.Type)
         {
+            case TokenType.PrintKeyword:
+                return ParsePrintKeyword(scope);
             case TokenType.LetToken:
                 return ParseLetInExpression(scope);
             case TokenType.IfKeyword:
@@ -198,6 +204,14 @@ class Parser
                 throw new Exception("Invalid Expression");
         }
     }
+
+    private HulkExpression ParsePrintKeyword(Scope scope)
+    {
+        var printKeyword = MatchToken(TokenType.PrintKeyword);
+        var expression = ParseExpression(scope.BuildChildScope());
+        return new PrintDeclaration(printKeyword,expression);
+    }
+
     private HulkExpression ParseFunctionCall(string identifier, Scope scope)
     {
         TokenAhead();

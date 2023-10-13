@@ -45,4 +45,5 @@ public enum TokenType
     UnaryExpression,
     ParenthesizedExpression,
     IfElseExpression,
+    PrintKeyword,
 }

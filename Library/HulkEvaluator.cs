@@ -27,17 +27,21 @@ public class HulkEvaluator
                 return EvaluateIfElseStatement(ifElseStatement); 
             case Let_In_Expression letInExpression:
                 return EvaluateLetInExpression(letInExpression);
+            case PrintDeclaration printDeclaration:
+                return EvaluatePrintDeclaration(printDeclaration);
             case FunctionCallExpression functionCallExpression:
                 return EvaluateFunctionCallExpression(functionCallExpression);
         }
         throw new Exception($"Unexpected node {node}");
     }
 
+    private object EvaluatePrintDeclaration(PrintDeclaration printDeclaration)
+    {
+        return EvaluateExpression(printDeclaration.ToPrintExpression);
+    }
+
     private object EvaluateFunctionCallExpression(FunctionCallExpression functionCallExpression)
     {
-        // var functionDeclaration = Parser.Functions[functionCallExpression.FunctionName];
-        // var scope = functionCallExpression.GetFunctionScope(functionCallExpression,functionDeclaration);
-        // return EvaluateExpression(functionDeclaration.FunctionBody);
         return true;
     }
 

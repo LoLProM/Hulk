@@ -1,5 +1,4 @@
 ﻿namespace HulkProject;
-using System.Text.RegularExpressions;
 
 class Program
 {
@@ -7,7 +6,7 @@ class Program
         "function Sum(x,y) => x + y;",
         // "function Sum(x,y,z) => x + y + z;",
         "Sum(1,2);",
-        "Mult(1,2);"
+        // "Mult(1,2);"
     };
     public static void Main(string[] args)
     {
@@ -16,8 +15,8 @@ class Program
         while (true)
         {
             Console.Write("> ");
-            // var input = Console.ReadLine();
-            var input = "a2;";
+            var input = Console.ReadLine();
+            // var input = "a2;";
             // Console.WriteLine($"> {input}");
             try
             {
@@ -35,7 +34,7 @@ class Program
                 var result = e.Evaluate();
 
                 Console.WriteLine();
-                System.Console.WriteLine($"EL Resultado es {result}");
+                Console.WriteLine($"EL Resultado es {result}");
             }
             catch(Exception e)
             {
