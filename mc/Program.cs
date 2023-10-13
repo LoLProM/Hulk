@@ -17,7 +17,7 @@ class Program
         {
             Console.Write("> ");
             // var input = Console.ReadLine();
-            var input = "let a = 2 in let b = a * 2 in b + 1;";
+            var input = "a2;";
             // Console.WriteLine($"> {input}");
             try
             {
@@ -39,7 +39,6 @@ class Program
             }
             catch(Exception e)
             {
-                
                 Console.WriteLine(e.Message);
             }
 

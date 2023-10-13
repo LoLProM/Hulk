@@ -24,13 +24,6 @@ public class HulkBinaryExpression : HulkExpression
             {
                 return typeof(int);
             }
-            if (Left is HulkBinaryExpression p)
-            {
-                if (p.Left == null && p.Right == null)
-                {
-                    return null!;
-                }
-            }
         }
 
         else if (OperatorToken.Type is TokenType.MinusToken)
@@ -39,18 +32,10 @@ public class HulkBinaryExpression : HulkExpression
             {
                 return null!;
             }
-            if (Left is HulkBinaryExpression p)
-            {
-                if (p.Left == null && p.Right == null)
-                {
-                    return null!;
-                }
-            }
             else if (Left.ExpressionType == Right.ExpressionType && Left.ExpressionType == typeof(int))
             {
                 return typeof(int);
             }
-
         }
 
         else if (OperatorToken.Type is TokenType.MultiplyToken)
@@ -58,13 +43,6 @@ public class HulkBinaryExpression : HulkExpression
             if (Left == null && Right == null)
             {
                 return null!;
-            }
-            if (Left is HulkBinaryExpression p)
-            {
-                if (p.Left == null && p.Right == null)
-                {
-                    return null!;
-                }
             }
             else if (Left.ExpressionType == Right.ExpressionType && Left.ExpressionType == typeof(int))
             {
@@ -77,13 +55,6 @@ public class HulkBinaryExpression : HulkExpression
             if (Left == null && Right == null)
             {
                 return null!;
-            }
-            if (Left is HulkBinaryExpression p)
-            {
-                if (p.Left == null && p.Right == null)
-                {
-                    return null!;
-                }
             }
             else if (Left.ExpressionType == Right.ExpressionType && Left.ExpressionType == typeof(int))
             {
@@ -98,13 +69,6 @@ public class HulkBinaryExpression : HulkExpression
             {
                 return null!;
             }
-            if (Left is HulkBinaryExpression p)
-            {
-                if (p.Left == null && p.Right == null)
-                {
-                    return null!;
-                }
-            }
             else if (Left.ExpressionType == typeof(bool) && Right.ExpressionType == typeof(bool))
             {
                 return typeof(bool);
@@ -115,13 +79,6 @@ public class HulkBinaryExpression : HulkExpression
             if (Left == null && Right == null)
             {
                 return null!;
-            }
-            if (Left is HulkBinaryExpression p)
-            {
-                if (p.Left == null && p.Right == null)
-                {
-                    return null!;
-                }
             }
             else if (Left.ExpressionType == Right.ExpressionType && Left.ExpressionType == typeof(bool))
             {
@@ -135,13 +92,7 @@ public class HulkBinaryExpression : HulkExpression
             {
                 return null!;
             }
-            if (Left is HulkBinaryExpression p)
-            {
-                if (p.Left == null && p.Right == null)
-                {
-                    return null!;
-                }
-            }
+
             else if (Left.ExpressionType == Right.ExpressionType && Left.ExpressionType == typeof(int))
             {
                 return typeof(int);
@@ -154,13 +105,7 @@ public class HulkBinaryExpression : HulkExpression
             {
                 return null!;
             }
-            if (Left is HulkBinaryExpression p)
-            {
-                if (p.Left == null && p.Right == null)
-                {
-                    return null!;
-                }
-            }
+
             else if (Left.ExpressionType == Right.ExpressionType && Left.ExpressionType == typeof(int))
                 return typeof(bool);
         }
@@ -171,13 +116,7 @@ public class HulkBinaryExpression : HulkExpression
             {
                 return null!;
             }
-            if (Left is HulkBinaryExpression p)
-            {
-                if (p.Left == null && p.Right == null)
-                {
-                    return null!;
-                }
-            }
+
             else if (Left.ExpressionType == Right.ExpressionType && Left.ExpressionType == typeof(int))
                 return typeof(bool);
         }
@@ -188,13 +127,7 @@ public class HulkBinaryExpression : HulkExpression
             {
                 return null!;
             }
-            if (Left is HulkBinaryExpression p)
-            {
-                if (p.Left == null && p.Right == null)
-                {
-                    return null!;
-                }
-            }
+
             else if (Left.ExpressionType == Right.ExpressionType && Left.ExpressionType == typeof(int))
                 return typeof(bool);
 
@@ -205,13 +138,7 @@ public class HulkBinaryExpression : HulkExpression
             {
                 return null!;
             }
-            if (Left is HulkBinaryExpression p)
-            {
-                if (p.Left == null && p.Right == null)
-                {
-                    return null!;
-                }
-            }
+
             else if (Left.ExpressionType == Right.ExpressionType && Left.ExpressionType == typeof(int))
             {
                 return typeof(bool);
@@ -224,13 +151,7 @@ public class HulkBinaryExpression : HulkExpression
             {
                 return null!;
             }
-            if (Left is HulkBinaryExpression p)
-            {
-                if (p.Left == null && p.Right == null)
-                {
-                    return null!;
-                }
-            }
+
             else if (Left.ExpressionType == Right.ExpressionType && Left.ExpressionType == typeof(int))
             {
                 return typeof(int);

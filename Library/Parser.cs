@@ -138,8 +138,8 @@ class Parser
     private HulkExpression ParseIfElseExpression(Scope scope)
     {
         var ifKeyword = MatchToken(TokenType.IfKeyword);
-        var condition = ParseExpression(scope);
-        var ifStatement = ParseExpression(scope);
+        var condition = ParseExpression(scope.BuildChildScope());
+        var ifStatement = ParseExpression(scope.BuildChildScope());
         MatchToken(TokenType.ElseKeyword);
         var elseStatement = ParseExpression(scope);
         return new If_ElseStatement(ifKeyword, condition, ifStatement, elseStatement);
@@ -250,7 +250,7 @@ class Parser
         {
             return scope.GetExpression(identifier);
         }
-        throw new Exception($"Undefine Variable {identifier}");
+        throw new Exception($"Undefine Variable {identifier.Text}");
     }
     private HulkExpression ParseString()
     {

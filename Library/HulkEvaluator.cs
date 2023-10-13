@@ -88,9 +88,7 @@ public class HulkEvaluator
                 return (int)left * (int)right;
             case TokenType.DivisionToken:
                 if ((int)right == 0)
-                {
                     throw new InvalidOperationException("Cannot divide by zero");
-                }
                 return (int)left / (int)right;
             case TokenType.ModuleToken:
                 return (int)left % (int)right;
