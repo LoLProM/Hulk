@@ -175,19 +175,13 @@ class Parser
                 return ParseBoolean();
             case TokenType.NumberToken:
                 return ParseNumber();
+            case TokenType.FunctionNameToken:
+                return ParseFunctionCall(CurrentToken.Text,scope);
             case TokenType.Identifier:
-                return ParseIdentifierOrFunctionCall(CurrentToken.Text, scope);
+                return ParseIdentifier(CurrentToken, scope);
             default:
                 throw new Exception("Invalid Expression");
         }
-    }
-    private HulkExpression ParseIdentifierOrFunctionCall(string identifier, Scope scope)
-    {
-        if (CurrentToken.Type == TokenType.Identifier && LookAhead(1).Type == TokenType.OpenParenthesisToken)
-        {
-            return ParseFunctionCall(identifier, scope);
-        }
-        return ParseIdentifier(identifier, scope);
     }
     private HulkExpression ParseFunctionCall(string identifier, Scope scope)
     {
@@ -234,10 +228,10 @@ class Parser
         }
         return scope;
     }
-    private HulkExpression ParseIdentifier(string identifier, Scope scope)
+    private HulkExpression ParseIdentifier(Token identifier, Scope scope)
     {
         TokenAhead();
-        if (scope.Contains(identifier))
+        if (scope.Contains(identifier.Text))
         {
             return scope.GetExpression(identifier);
         }

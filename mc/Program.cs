@@ -5,23 +5,20 @@ class Program
 {
     static string[] inputs = {
         "function Sum(x,y) => x + y;",
-        "function Sum(x,y,z) => x + y + z;",
+        // "function Sum(x,y,z) => x + y + z;",
         "Sum(1,2);",
         "Mult(1,2);"
-        // "2+2;",
-        // "let a = 2 in a + 2;",
-        
     };
     public static void Main(string[] args)
     {
 
-        // foreach (var input in inputs)
-        while (true)
+        foreach (var input in inputs)
+        // while (true)
         {
-            Console.Write("> ");
-            var input = Console.ReadLine();
+            // Console.Write("> ");
+            // var input = Console.ReadLine();
             // var input = "let a = 7 in a = false;";
-            // Console.WriteLine($"> {input}");
+            Console.WriteLine($"> {input}");
             try
             {
                 if (string.IsNullOrEmpty(input))

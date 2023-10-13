@@ -23,7 +23,7 @@ public class HulkLiteralExpression : HulkExpression
         if (LiteralToken.Type == TokenType.Identifier) 
         {
             if (functionScope.Contains(LiteralToken.Text))
-                return functionScope.GetExpression(LiteralToken.Text);
+                return functionScope.GetExpression(LiteralToken);
         }
         return this;
     }

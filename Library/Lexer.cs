@@ -8,8 +8,11 @@ class Lexer
     public List<Token> Tokens = new List<Token>();
     int position = 0;
 
+    public string Text;
+
     public Lexer(string textInput)
     {
+        Text = textInput;
         textInput = Regex.Replace(textInput, @"\s+", " ");
 
         Regex SyntaxTokens = new(@"\d+[^\D]|\+|\-|\*|\^|%|\(|\)|(=>)|(>=)|(<=)|<[=]{0}|>[=]{0}|!=|;|,|={1,2}|!|\&|\||(\u0022([^\u0022\\]|\\.)*\u0022)|@|[a-zA-Z]+\w*|[^\(\)\+\-\*/\^%<>=!&\|,;\s]+");
@@ -67,6 +70,10 @@ class Lexer
         {
             return new Token(match.Value, TokenType.FunctionKeyword, match.Index, match.Value);
         }
+        else if (IsFunctionName(match))
+        {
+            return new Token(match.Value, TokenType.FunctionNameToken,match.Index,match.Value);
+        }
         else if (IsIdentifier(match))
         {
             return new Token(match.Value, TokenType.Identifier, match.Index, match.Value);
@@ -116,6 +123,15 @@ class Lexer
                 return new Token("=>", TokenType.ArrowToken, match.Index, null);
         }
         return new Token(match.Value, TokenType.WrongToken, match.Index, null);
+    }
+
+    private bool IsFunctionName(Match match)
+    {
+        if(IsIdentifier(match) && Text[match.Value.Length] == '(')
+        {
+            return true;
+        }
+        return false;
     }
 
     private bool IsFunction(Match match)

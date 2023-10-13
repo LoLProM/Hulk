@@ -50,11 +50,11 @@ public class Scope
         }
         return scope;
     }
-    public HulkExpression GetExpression(string identifier)
+    public HulkExpression GetExpression(Token identifier)
     {
-        if(variables.ContainsKey(identifier))
+        if(variables.ContainsKey(identifier.Text))
         {
-            return variables[identifier];
+            return variables[identifier.Text];
         }
         return parent is null ? throw new Exception("Not identifier found") : parent.GetExpression(identifier);
     }
