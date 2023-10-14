@@ -10,10 +10,6 @@ public class FunctionDeclarationExpression : HulkExpression
     }
     public string FunctionName { get; }
     public List<string> Arguments { get; }
-    public HulkExpression FunctionBody { get; }
+    public HulkExpression FunctionBody { get; private set;}
 
-    public override HulkExpression UseScope(Scope functionScope)
-    {
-        return this;
-    }
 }

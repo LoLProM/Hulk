@@ -11,9 +11,4 @@ public class PrintDeclaration : HulkExpression
 
     public Token PrintKeyword { get; }
     public HulkExpression ToPrintExpression { get; }
-
-    public override HulkExpression UseScope(Scope functionScope)
-    {
-        return this;
-    }
 }

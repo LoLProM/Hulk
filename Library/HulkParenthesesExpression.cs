@@ -13,15 +13,6 @@ public class HulkParenthesesExpression : HulkExpression
     public Token OpenParenthesisToken { get; }
     public HulkExpression InsideExpression { get; }
     public Token CloseParenthesisToken { get; }
-
-    public override HulkExpression UseScope(Scope functionScope)
-    {
-        return new HulkParenthesesExpression(
-        OpenParenthesisToken,
-        InsideExpression.UseScope(functionScope),
-        CloseParenthesisToken
-        );
-    }
 }
 
 

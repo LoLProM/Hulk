@@ -2,6 +2,7 @@ namespace HulkProject;
 
 public class HulkEvaluator
 {
+    public Scope scope;
     private HulkExpression _node;
     public HulkEvaluator(HulkExpression node)
     {
@@ -9,9 +10,9 @@ public class HulkEvaluator
     }
     public object Evaluate()
     {
-        return EvaluateExpression(_node);
+        return EvaluateExpression(_node,scope);
     }
-    private object EvaluateExpression(HulkExpression node)
+    private object EvaluateExpression(HulkExpression node,Scope scope)
     { 
         switch (node)
         {
@@ -26,7 +27,7 @@ public class HulkEvaluator
             case If_ElseStatement ifElseStatement:
                 return EvaluateIfElseStatement(ifElseStatement); 
             case Let_In_Expression letInExpression:
-                return EvaluateLetInExpression(letInExpression);
+                return EvaluateLetInExpression(letInExpression, scope);
             case PrintDeclaration printDeclaration:
                 return EvaluatePrintDeclaration(printDeclaration);
             case FunctionCallExpression functionCallExpression:
@@ -37,7 +38,7 @@ public class HulkEvaluator
 
     private object EvaluatePrintDeclaration(PrintDeclaration printDeclaration)
     {
-        return EvaluateExpression(printDeclaration.ToPrintExpression);
+        return EvaluateExpression(printDeclaration.ToPrintExpression,scope);
     }
 
     private object EvaluateFunctionCallExpression(FunctionCallExpression functionCallExpression)
@@ -45,9 +46,22 @@ public class HulkEvaluator
         return true;
     }
 
-    private object EvaluateLetInExpression(Let_In_Expression letInExpression)
+    private object EvaluateLetInExpression(Let_In_Expression letInExpression, Scope scope)
     {
-        return EvaluateExpression(letInExpression.InExpression);
+        var inScope = EvaluateLetExpression(letInExpression.LetExpression,scope);
+        var inExpression = EvaluateExpression(letInExpression.InExpression,inScope);
+        return inExpression;
+    }
+
+    private Scope EvaluateLetExpression(LetExpression letExpression, Scope scope)
+    {
+        var evaluateLetExpression = EvaluateExpression(letExpression,scope);
+        scope.AddVariable(letExpression.Identifier.Text, evaluateLetExpression);
+        if (letExpression.LetChildExpression is null)
+        {
+            return scope;
+        }
+        return EvaluateLetExpression(letExpression.LetChildExpression,scope.BuildChildScope());
     }
 
     private object EvaluateLiteralExpression(HulkLiteralExpression literal)
@@ -57,12 +71,12 @@ public class HulkEvaluator
 
     private object EvaluateParenthesesExpression(HulkParenthesesExpression parenthesesExpression)
     {
-        return EvaluateExpression(parenthesesExpression.InsideExpression);
+        return EvaluateExpression(parenthesesExpression.InsideExpression,scope);
     }
 
     private object EvaluateUnaryExpression(HulkUnaryExpression unary)
     {
-        var value = EvaluateExpression(unary.InternalExpression);
+        var value = EvaluateExpression(unary.InternalExpression,scope);
         if (unary.OperatorToken.Type == TokenType.MinusToken)
         {
             return -(int)value;
@@ -79,8 +93,8 @@ public class HulkEvaluator
     }
     private object EvaluateBinaryExpression(HulkBinaryExpression binaryExpression)
     {
-        var left = EvaluateExpression(binaryExpression.Left);
-        var right = EvaluateExpression(binaryExpression.Right);
+        var left = EvaluateExpression(binaryExpression.Left,scope);
+        var right = EvaluateExpression(binaryExpression.Right,scope);
 
         switch (binaryExpression.OperatorToken.Type)
         {
@@ -123,14 +137,14 @@ public class HulkEvaluator
     }
     private object EvaluateIfElseStatement(If_ElseStatement ifElseStatement)
     {
-        var condition = (bool)EvaluateExpression(ifElseStatement.IfCondition);
+        var condition = (bool)EvaluateExpression(ifElseStatement.IfCondition,scope);
         if (condition)
         {
-            return EvaluateExpression(ifElseStatement.IfStatement);
+            return EvaluateExpression(ifElseStatement.IfStatement,scope);
         }
         else
         {
-            return EvaluateExpression(ifElseStatement.ElseClause);
+            return EvaluateExpression(ifElseStatement.ElseClause,scope);
         }
     }
     private int Pow(int left, int right)

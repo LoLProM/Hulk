@@ -15,15 +15,5 @@ public class If_ElseStatement : HulkExpression
     public HulkExpression IfCondition { get; }
     public HulkExpression IfStatement { get; }
     public HulkExpression ElseClause { get; }
-
-    public override HulkExpression UseScope(Scope functionScope)
-    {
-        return new If_ElseStatement(
-            IfKeyword,
-        IfCondition.UseScope(functionScope),
-        IfStatement.UseScope(functionScope),
-        ElseClause.UseScope(functionScope)
-        );
-    }
 }
 

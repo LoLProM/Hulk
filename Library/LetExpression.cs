@@ -16,13 +16,5 @@ namespace HulkProject
         public Token Identifier { get; }
         public HulkExpression Expression { get; }
         public LetExpression LetChildExpression { get; }
-
-        public override HulkExpression UseScope(Scope functionScope)
-        {
-            return new LetExpression(Identifier, 
-            Expression.UseScope(functionScope),
-            (LetExpression)LetChildExpression?.UseScope(functionScope)
-            );
-        }
     }
 }

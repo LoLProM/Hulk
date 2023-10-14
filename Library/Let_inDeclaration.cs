@@ -11,11 +11,4 @@ public class Let_In_Expression : HulkExpression
     public LetExpression LetExpression { get; }
     public HulkExpression InExpression { get; }
 
-    public override HulkExpression UseScope(Scope functionScope)
-    {
-        return new Let_In_Expression(
-            (LetExpression)LetExpression.UseScope(functionScope),
-            InExpression.UseScope(functionScope)
-            );
-    }
 }

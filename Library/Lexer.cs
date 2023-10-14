@@ -1,6 +1,5 @@
 namespace HulkProject;
 
-using System;
 using System.Text.RegularExpressions;
 
 class Lexer
@@ -15,7 +14,7 @@ class Lexer
         Text = textInput;
         textInput = Regex.Replace(textInput, @"\s+", " ");
 
-        Regex SyntaxTokens = new(@"\d+[^\D]|\+|\-|\*|\^|%|\(|\)|(=>)|(>=)|(<=)|<[=]{0}|>[=]{0}|!=|;|,|={1,2}|!|\&|\||(\u0022([^\u0022\\]|\\.)*\u0022)|@|[a-zA-Z]+\w*|[^\(\)\+\-\*/\^%<>=!&\|,;\s]+");
+        Regex SyntaxTokens = new(@"\d+[^\D]|\+|\-|\*|\^|%|\(|\)|(=>)|(>=)|(<=)|<[=]{0}|>[=]{0}|!=|;|,|={1,2}|!|\&|\||(\u0022([^\u0022\\]|\\.)*\u0022)|@|[a-zA-Z]+\w*|/|[^\(\)\+\-\*/\^%<>=!&\|,;\s]+");
 
         var matches = SyntaxTokens.Matches(textInput);
 
@@ -74,10 +73,6 @@ class Lexer
         {
             return new Token(match.Value, TokenType.PrintKeyword, match.Index, match.Value);
         }
-        else if (IsFunctionName(match))
-        {
-            return new Token(match.Value, TokenType.FunctionNameToken,match.Index,match.Value);
-        }
         else if (IsIdentifier(match))
         {
             return new Token(match.Value, TokenType.Identifier, match.Index, match.Value);
@@ -134,15 +129,6 @@ class Lexer
         if (match.Value == "print")
         {
             position++;
-            return true;
-        }
-        return false;
-    }
-
-    private bool IsFunctionName(Match match)
-    {
-        if(IsIdentifier(match) && Text[match.Value.Length] == '(')
-        {
             return true;
         }
         return false;

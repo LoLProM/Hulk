@@ -29,7 +29,6 @@ public enum TokenType
     StringToken,
     ColonToken,
     ArrowToken,
-    FunctionNameToken,
     Identifier,
 
     //Keywords

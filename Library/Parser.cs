@@ -12,6 +12,7 @@ class Parser
     }
 
     private Token CurrentToken => LookAhead(0);
+    private Token NextToken => LookAhead(1);
     private Token LookAhead(int offset)
     {
         var index = position + offset;
@@ -39,17 +40,17 @@ class Parser
     public ASTree Parse()
     {
         Scope scope = new Scope();
-        var expression = ParseAny(scope);
+        var expression = ParseAny();
         var endOfFileToken = MatchToken(TokenType.EndOffLineToken);
         return new ASTree(expression, endOfFileToken);
     }
-    private HulkExpression ParseAny(Scope scope)
+    private HulkExpression ParseAny()
     {
         if (CurrentToken.Type is TokenType.FunctionKeyword)
         {
             return ParseFunctionDeclaration();
         }
-        return ParseExpression(scope);
+        return ParseExpression();
     }
 
     private FunctionDeclarationExpression ParseFunctionDeclaration()
@@ -58,10 +59,7 @@ class Parser
         var functionName = MatchToken(TokenType.Identifier);
         var functionParameters = ParseParameters();
         var arrowToken = MatchToken(TokenType.ArrowToken);
-        var functionScope = new Scope(functionParameters);
-        
-        var functionBody = ParseFunctionBody(functionScope);
-
+        var functionBody = ParseExpression();
         var functionDeclaration = new FunctionDeclarationExpression(functionName.Text, functionParameters, functionBody);
 
         if (!Functions.ContainsKey(functionName.Text))
@@ -72,27 +70,10 @@ class Parser
         {
             throw new Exception($"Function {functionName.Text} is already defined");
         }
+
         return functionDeclaration;
     }
 
-    private string GetFunctionBody()
-    {
-        var result = "";
-        for (int i = CurrentToken.Position; i < tokens.Count; i++)
-        {
-            if (CurrentToken.Type == TokenType.ColonToken)
-            {
-                break;
-            }
-            result += tokens[i].Text;
-        }
-        return result;
-    }
-
-    private HulkExpression ParseFunctionBody(Scope scope)
-    {
-        return ParseExpression(scope);
-    }
     private List<string> ParseParameters()
     {
         TokenAhead();
@@ -112,26 +93,24 @@ class Parser
         TokenAhead();
         return parameters;
     }
-    private HulkExpression ParseLetInExpression(Scope scope)
+    private HulkExpression ParseLetInExpression()
     {
         var letKeyword = MatchToken(TokenType.LetToken);
-        var letExpression = ParseLetExpression(scope);
+        var letExpression = ParseLetExpression();
         var inKeyword = MatchToken(TokenType.InToken);
-        var inExpression = ParseExpression(scope.BottomScope());
+        var inExpression = ParseExpression();
         return new Let_In_Expression(letExpression, inExpression);
     }
-    private LetExpression ParseLetExpression(Scope scope)
+    private LetExpression ParseLetExpression()
     {
         var identifier = MatchToken(TokenType.Identifier);
         var equal = MatchToken(TokenType.SingleEqualToken);
-        var expression = ParseExpression(scope.BuildChildScope());
-        scope.AddVariable(identifier.Text, expression);
-        scope = scope.BuildChildScope();
+        var expression = ParseExpression();
 
         if (CurrentToken.Type == TokenType.ColonToken)
         {
             TokenAhead();
-            var letChildExpression = ParseLetExpression(scope);
+            var letChildExpression = ParseLetExpression();
             return new LetExpression(identifier, expression, letChildExpression);
         }
         else
@@ -139,28 +118,28 @@ class Parser
             return new LetExpression(identifier, expression);
         }
     }
-    private HulkExpression ParseIfElseExpression(Scope scope)
+    private HulkExpression ParseIfElseExpression()
     {
         var ifKeyword = MatchToken(TokenType.IfKeyword);
-        var condition = ParseExpression(scope.BuildChildScope());
-        var ifStatement = ParseExpression(scope.BuildChildScope());
+        var condition = ParseExpression();
+        var ifStatement = ParseExpression();
         MatchToken(TokenType.ElseKeyword);
-        var elseStatement = ParseExpression(scope);
+        var elseStatement = ParseExpression();
         return new If_ElseStatement(ifKeyword, condition, ifStatement, elseStatement);
     }
-    private HulkExpression ParseExpression(Scope scope, int actualPrecedence = 0)
+    private HulkExpression ParseExpression(int actualPrecedence = 0)
     {
         HulkExpression left;
         var unaryOperatorPrecedence = TokensPrecedences.GetUnaryOperatorPrecedence(CurrentToken.Type);
         if (unaryOperatorPrecedence != 0 && unaryOperatorPrecedence >= actualPrecedence)
         {
             var operatorToken = TokenAhead();
-            var expression = ParseExpression(scope, unaryOperatorPrecedence);
+            var expression = ParseExpression(unaryOperatorPrecedence);
             left = new HulkUnaryExpression(operatorToken, expression);
         }
         else
         {
-            left = ParsePrimary(scope);
+            left = ParsePrimary();
         }
 
         while (true)
@@ -172,47 +151,53 @@ class Parser
             }
 
             var operatorToken = TokenAhead();
-            var right = ParseExpression(scope, precedence);
+            var right = ParseExpression(precedence);
             left = new HulkBinaryExpression(left, operatorToken, right);
         }
         return left;
     }
-    private HulkExpression ParsePrimary(Scope scope)
+    private HulkExpression ParsePrimary()
     {
         switch (CurrentToken.Type)
         {
             case TokenType.PrintKeyword:
-                return ParsePrintKeyword(scope);
+                return ParsePrintKeyword();
             case TokenType.LetToken:
-                return ParseLetInExpression(scope);
+                return ParseLetInExpression();
             case TokenType.IfKeyword:
-                return ParseIfElseExpression(scope);
+                return ParseIfElseExpression();
             case TokenType.StringToken:
                 return ParseString();
             case TokenType.OpenParenthesisToken:
-                return ParseParenthesizedExpression(scope);
+                return ParseParenthesizedExpression();
             case TokenType.TrueKeyword:
             case TokenType.FalseKeyword:
                 return ParseBoolean();
             case TokenType.NumberToken:
                 return ParseNumber();
-            case TokenType.FunctionNameToken:
-                return ParseFunctionCall(CurrentToken.Text,scope);
             case TokenType.Identifier:
-                return ParseIdentifier(CurrentToken, scope);
+                return ParseIdentifierOrFunctionCall();
             default:
                 throw new Exception("Invalid Expression");
         }
     }
+    private HulkExpression ParseIdentifierOrFunctionCall()
+    {
+        if (CurrentToken.Type == TokenType.Identifier && LookAhead(1).Type == TokenType.OpenParenthesisToken)
+        {
+            return ParseFunctionCall(CurrentToken.Text);
+        }
+        return ParseIdentifier(CurrentToken);
+    }
 
-    private HulkExpression ParsePrintKeyword(Scope scope)
+    private HulkExpression ParsePrintKeyword()
     {
         var printKeyword = MatchToken(TokenType.PrintKeyword);
-        var expression = ParseExpression(scope.BuildChildScope());
+        var expression = ParseExpression();
         return new PrintDeclaration(printKeyword,expression);
     }
 
-    private HulkExpression ParseFunctionCall(string identifier, Scope scope)
+    private HulkExpression ParseFunctionCall(string identifier)
     {
         TokenAhead();
         var parameters = new List<HulkExpression>();
@@ -224,7 +209,7 @@ class Parser
             {
                 break;
             }
-            var expression = ParseExpression(scope);
+            var expression = ParseExpression();
             parameters.Add(expression);
             if (CurrentToken.Type == TokenType.ColonToken)
             {
@@ -233,20 +218,8 @@ class Parser
         }
 
         MatchToken(TokenType.CloseParenthesisToken);
-
-        if (!Functions.ContainsKey(identifier))
-        {
-            throw new Exception($"Function {identifier} is not defined");
-        }
-        if (Functions[identifier].Arguments.Count != parameters.Count)
-        {
-            throw new Exception($"Function {identifier} does not have {parameters.Count} parameters but {Functions[identifier].Arguments.Count} parameters");
-        }
-
-        var functionDeclaration = Functions[identifier];
-        var functionScope = GetFunctionScope(parameters, functionDeclaration.Arguments);
         
-        return functionDeclaration.FunctionBody.UseScope(functionScope);
+        return new FunctionCallExpression(identifier, parameters);
     }
     public Scope GetFunctionScope(List<HulkExpression> functionParameters, List<string> functionDeclarationArguments)
     {
@@ -255,16 +228,16 @@ class Parser
         {
             scope.AddVariable(functionDeclarationArguments[i], functionParameters[i]);
         }
+        foreach (var function in Parser.Functions) {
+            scope.AddVariable(function.Key, function.Value);
+        }
         return scope;
     }
-    private HulkExpression ParseIdentifier(Token identifier, Scope scope)
+
+    private HulkExpression ParseIdentifier(Token identifier)
     {
         TokenAhead();
-        if (scope.Contains(identifier.Text))
-        {
-            return scope.GetExpression(identifier);
-        }
-        throw new Exception($"Undefine Variable {identifier.Text}");
+        return new HulkLiteralExpression(identifier);
     }
     private HulkExpression ParseString()
     {
@@ -282,10 +255,10 @@ class Parser
         var booleanExpression = keyword.Type == TokenType.TrueKeyword;
         return new HulkLiteralExpression(keyword, booleanExpression);
     }
-    private HulkExpression ParseParenthesizedExpression(Scope scope)
+    private HulkExpression ParseParenthesizedExpression()
     {
         var left = TokenAhead();
-        var expression = ParseExpression(scope);
+        var expression = ParseExpression();
         var right = MatchToken(TokenType.CloseParenthesisToken);
         return new HulkParenthesesExpression(left, expression, right);
     }

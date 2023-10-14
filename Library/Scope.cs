@@ -5,13 +5,13 @@ public class Scope
     protected Scope? parent;
 
     protected Scope? child;
-    private Dictionary<string, HulkExpression?> variables;
+    private Dictionary<string, object> variables;
 
     public static Scope EmptyScope => new Scope();
     
     public Scope()
     {
-        variables = new Dictionary<string, HulkExpression?>();
+        variables = new Dictionary<string, object>();
     }
 
     public Scope(List<string> parameters) : this()
@@ -21,7 +21,7 @@ public class Scope
             variables.Add(parameter, null);
         }
     }
-    public void AddVariable(string identifier, HulkExpression expression)
+    public void AddVariable(string identifier, object expression)
     {
         variables[identifier] = expression;
     }
@@ -50,12 +50,12 @@ public class Scope
         }
         return scope;
     }
-    public HulkExpression GetExpression(Token identifier)
+    public object GetValue(Token identifier)
     {
         if(variables.ContainsKey(identifier.Text))
         {
             return variables[identifier.Text];
         }
-        return parent is null ? throw new Exception("Not identifier found") : parent.GetExpression(identifier);
+        return parent is null ? throw new Exception("Not identifier found") : parent.GetValue(identifier);
     }
 }

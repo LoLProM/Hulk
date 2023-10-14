@@ -12,12 +12,6 @@ public class HulkUnaryExpression : HulkExpression
     public Token OperatorToken { get; }
     public TokenType Type => TokenType.UnaryExpression;
     public HulkExpression InternalExpression { get; }
-
-    public override HulkExpression UseScope(Scope functionScope)
-    {
-        return InternalExpression.UseScope(functionScope);
-    }
-
     private Type GetUnaryExpressionType()
     {
         if (OperatorToken.Type == TokenType.PlusToken)

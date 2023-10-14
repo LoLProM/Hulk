@@ -17,16 +17,6 @@ public class HulkLiteralExpression : HulkExpression
     public TokenType Type => TokenType.LiteralExpression;
     public Token LiteralToken { get; }
     public object Value { get; }
-
-    public override HulkExpression UseScope(Scope functionScope)
-    {
-        if (LiteralToken.Type == TokenType.Identifier) 
-        {
-            if (functionScope.Contains(LiteralToken.Text))
-                return functionScope.GetExpression(LiteralToken);
-        }
-        return this;
-    }
 }
 
 
