@@ -221,18 +221,6 @@ class Parser
         
         return new FunctionCallExpression(identifier, parameters);
     }
-    public Scope GetFunctionScope(List<HulkExpression> functionParameters, List<string> functionDeclarationArguments)
-    {
-        var scope = new Scope();
-        for (int i = 0; i < functionParameters.Count; i++)
-        {
-            scope.AddVariable(functionDeclarationArguments[i], functionParameters[i]);
-        }
-        foreach (var function in Parser.Functions) {
-            scope.AddVariable(function.Key, function.Value);
-        }
-        return scope;
-    }
 
     private HulkExpression ParseIdentifier(Token identifier)
     {

@@ -2,7 +2,6 @@ namespace HulkProject;
 
 public class HulkEvaluator
 {
-    public Scope scope;
     private HulkExpression _node;
     public HulkEvaluator(HulkExpression node)
     {
@@ -10,6 +9,7 @@ public class HulkEvaluator
     }
     public object Evaluate()
     {
+        Scope scope = new();
         return EvaluateExpression(_node,scope);
     }
     private object EvaluateExpression(HulkExpression node,Scope scope)
@@ -17,33 +17,43 @@ public class HulkEvaluator
         switch (node)
         {
             case HulkLiteralExpression literal:
-                return EvaluateLiteralExpression(literal);
+                return EvaluateLiteralExpression(literal,scope);
             case HulkUnaryExpression unary:
-                return EvaluateUnaryExpression(unary);
+                return EvaluateUnaryExpression(unary,scope);
             case HulkBinaryExpression binaryExpression:
-                return EvaluateBinaryExpression(binaryExpression);
+                return EvaluateBinaryExpression(binaryExpression,scope);
             case HulkParenthesesExpression parenthesesExpression:
-                return EvaluateParenthesesExpression(parenthesesExpression);
+                return EvaluateParenthesesExpression(parenthesesExpression,scope);
             case If_ElseStatement ifElseStatement:
-                return EvaluateIfElseStatement(ifElseStatement); 
+                return EvaluateIfElseStatement(ifElseStatement,scope); 
             case Let_In_Expression letInExpression:
                 return EvaluateLetInExpression(letInExpression, scope);
             case PrintDeclaration printDeclaration:
-                return EvaluatePrintDeclaration(printDeclaration);
+                return EvaluatePrintDeclaration(printDeclaration,scope);
             case FunctionCallExpression functionCallExpression:
-                return EvaluateFunctionCallExpression(functionCallExpression);
+                return EvaluateFunctionCallExpression(functionCallExpression,scope);
         }
         throw new Exception($"Unexpected node {node}");
     }
 
-    private object EvaluatePrintDeclaration(PrintDeclaration printDeclaration)
+    private object EvaluatePrintDeclaration(PrintDeclaration printDeclaration,Scope scope)
     {
         return EvaluateExpression(printDeclaration.ToPrintExpression,scope);
     }
 
-    private object EvaluateFunctionCallExpression(FunctionCallExpression functionCallExpression)
+    private object EvaluateFunctionCallExpression(FunctionCallExpression functionCallExpression,Scope scope)
     {
-        return true;
+        var functionDeclaration = Parser.Functions[functionCallExpression.FunctionName];
+        var parameters = functionCallExpression.Parameters;
+        var arguments = functionDeclaration.Arguments;
+
+        var functionCallScope = new Scope();
+        foreach (var (arg, param) in arguments.Zip(parameters))
+        {
+            functionCallScope.AddVariable(arg, EvaluateExpression(param, scope.BuildChildScope()));
+        }
+
+        return EvaluateExpression(functionDeclaration.FunctionBody, functionCallScope);
     }
 
     private object EvaluateLetInExpression(Let_In_Expression letInExpression, Scope scope)
@@ -55,7 +65,7 @@ public class HulkEvaluator
 
     private Scope EvaluateLetExpression(LetExpression letExpression, Scope scope)
     {
-        var evaluateLetExpression = EvaluateExpression(letExpression,scope);
+        var evaluateLetExpression = EvaluateExpression(letExpression.Expression,scope);
         scope.AddVariable(letExpression.Identifier.Text, evaluateLetExpression);
         if (letExpression.LetChildExpression is null)
         {
@@ -64,17 +74,21 @@ public class HulkEvaluator
         return EvaluateLetExpression(letExpression.LetChildExpression,scope.BuildChildScope());
     }
 
-    private object EvaluateLiteralExpression(HulkLiteralExpression literal)
+    private object EvaluateLiteralExpression(HulkLiteralExpression literal,Scope scope)
     {
+        if(literal.LiteralToken.Type is TokenType.Identifier)
+        {
+            return scope.GetValue(literal.LiteralToken);
+        }
         return literal.Value;
     }
 
-    private object EvaluateParenthesesExpression(HulkParenthesesExpression parenthesesExpression)
+    private object EvaluateParenthesesExpression(HulkParenthesesExpression parenthesesExpression,Scope scope)
     {
         return EvaluateExpression(parenthesesExpression.InsideExpression,scope);
     }
 
-    private object EvaluateUnaryExpression(HulkUnaryExpression unary)
+    private object EvaluateUnaryExpression(HulkUnaryExpression unary,Scope scope)
     {
         var value = EvaluateExpression(unary.InternalExpression,scope);
         if (unary.OperatorToken.Type == TokenType.MinusToken)
@@ -91,7 +105,7 @@ public class HulkEvaluator
         }
         throw new Exception("Invalid unary operator");
     }
-    private object EvaluateBinaryExpression(HulkBinaryExpression binaryExpression)
+    private object EvaluateBinaryExpression(HulkBinaryExpression binaryExpression,Scope scope)
     {
         var left = EvaluateExpression(binaryExpression.Left,scope);
         var right = EvaluateExpression(binaryExpression.Right,scope);
@@ -135,16 +149,16 @@ public class HulkEvaluator
                 throw new Exception($"Unexpected binary operator {binaryExpression.OperatorToken.Type}");
         }
     }
-    private object EvaluateIfElseStatement(If_ElseStatement ifElseStatement)
+    private object EvaluateIfElseStatement(If_ElseStatement ifElseStatement,Scope scope)
     {
-        var condition = (bool)EvaluateExpression(ifElseStatement.IfCondition,scope);
+        var condition = (bool)EvaluateExpression(ifElseStatement.IfCondition,scope.BuildChildScope());
         if (condition)
         {
-            return EvaluateExpression(ifElseStatement.IfStatement,scope);
+            return EvaluateExpression(ifElseStatement.IfStatement,scope.BuildChildScope());
         }
         else
         {
-            return EvaluateExpression(ifElseStatement.ElseClause,scope);
+            return EvaluateExpression(ifElseStatement.ElseClause,scope.BuildChildScope());
         }
     }
     private int Pow(int left, int right)

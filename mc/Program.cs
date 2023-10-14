@@ -5,12 +5,15 @@ class Program
     static string[] inputs = {
         "2*2+2/2;",
         "function fact(x) => if (x == 1) 1 else x * fact(x-1);",
-        "fact(5);",
         "function Sum(x,y) => x + y;",
-        // "function Sum(x,y,z) => x + y + z;",
+        "fact(5);",
+        "function fib(x) => if (x == 1 | x == 0) 1 else fib(x-1) + fib(x-2);",
+        "fib(7);",
+        "if (let a = 2 in a ==2 ) a else 1;",
+        // // "function Sum(x,y,z) => x + y + z;",
         "Sum(1,2);",
-        "Mult(1,2);",
-        "let a = 2 in a = 3;",
+        // "Mult(1,2);",
+        // "let a = 2 in a = 3;",
         "let a = let b = 2 in b in a *2;",
         "let a = if (let b = 2 in b == --(2*1)) 3 else 1 in a *4;"
     };
