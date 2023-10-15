@@ -25,6 +25,7 @@ public enum TokenType
     SingleEqualToken,
     WrongToken,
     LetToken,
+    ArrobaToken,
     InToken,
     StringToken,
     ColonToken,
@@ -37,6 +38,14 @@ public enum TokenType
     IfKeyword,
     ElseKeyword,
     FunctionKeyword,
+    PrintKeyword,
+    SinKeyword,
+    CosKeyword,
+    RandKeyword,
+    LogKeyword,
+    EulerKeyword,
+    PIKeyword,
+    SQRTKeyword,
 
     // Expressions
     LiteralExpression,
@@ -44,5 +53,4 @@ public enum TokenType
     UnaryExpression,
     ParenthesizedExpression,
     IfElseExpression,
-    PrintKeyword,
 }

@@ -69,6 +69,30 @@ class Lexer
         {
             return new Token(match.Value, TokenType.FunctionKeyword, match.Index, match.Value);
         }
+        else if (IsSinFunction(match))
+        {
+            return new Token(match.Value, TokenType.SinKeyword, match.Index, match.Value);
+        }
+        else if (IsCosFunction(match))
+        {
+            return new Token(match.Value, TokenType.CosKeyword, match.Index, match.Value);
+        }
+        else if (IsLogFunction(match))
+        {
+            return new Token(match.Value, TokenType.LogKeyword, match.Index, match.Value);
+        }
+        else if (IsRandFunction(match))
+        {
+            return new Token(match.Value, TokenType.RandKeyword, match.Index, match.Value);
+        }
+        else if (IsPIKeyword(match))
+        {
+            return new Token(match.Value, TokenType.PIKeyword, match.Index, match.Value);
+        }
+        else if (IsEulerKeyword(match))
+        {
+            return new Token(match.Value, TokenType.EulerKeyword,match.Index,match.Value);
+        }
         else if (IsPrintKeyword(match))
         {
             return new Token(match.Value, TokenType.PrintKeyword, match.Index, match.Value);
@@ -120,8 +144,70 @@ class Lexer
                 return new Token(",", TokenType.ColonToken, match.Index, null);
             case "=>":
                 return new Token("=>", TokenType.ArrowToken, match.Index, null);
+            case "@":
+                return new Token("@", TokenType.ArrobaToken, match.Index, null);
         }
-        return new Token(match.Value, TokenType.WrongToken, match.Index, null);
+        throw new Exception($"! LEXICAL ERROR : '{match.Value}' is not a valid token");
+    }
+
+    private bool IsEulerKeyword(Match match)
+    {
+        if (match.Value == "E")
+        {
+            position++;
+            return true;
+        }
+        return false;
+    }
+
+    private bool IsPIKeyword(Match match)
+    {
+        if (match.Value == "PI")
+        {
+            position++;
+            return true;
+        }
+        return false;
+    }
+
+    private bool IsSinFunction(Match match)
+    {
+        if (match.Value == "sin")
+        {
+            position++;
+            return true;
+        }
+        return false;
+    }
+
+    private bool IsCosFunction(Match match)
+    {
+        if (match.Value == "cos")
+        {
+            position++;
+            return true;
+        }
+        return false;
+    }
+
+    private bool IsLogFunction(Match match)
+    {
+        if (match.Value == "log")
+        {
+            position++;
+            return true;
+        }
+        return false;
+    }
+
+    private bool IsRandFunction(Match match)
+    {
+        if (match.Value == "rand")
+        {
+            position++;
+            return true;
+        }
+        return false;
     }
 
     private bool IsPrintKeyword(Match match)

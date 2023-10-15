@@ -34,7 +34,7 @@ class Parser
         {
             return TokenAhead();
         }
-        throw new Exception($"Not find {type}");
+        throw new Exception($"!SYNTAX ERROR : Not find {type} after {LookAhead(-1).Type} {LookAhead(-1).Text}");
     }
 
     public ASTree Parse()
@@ -68,7 +68,7 @@ class Parser
         }
         else
         {
-            throw new Exception($"Function {functionName.Text} is already defined");
+            throw new Exception($"! FUNCTION ERROR : Function {functionName.Text} is already defined");
         }
 
         return functionDeclaration;
@@ -76,7 +76,7 @@ class Parser
 
     private List<string> ParseParameters()
     {
-        TokenAhead();
+        MatchToken(TokenType.OpenParenthesisToken);
         var parameters = new List<string>();
         parameters.Add(CurrentToken.Text);
         TokenAhead();
@@ -85,7 +85,11 @@ class Parser
             TokenAhead();
             if (CurrentToken.Type is not TokenType.Identifier)
             {
-                throw new Exception($"Parameters must be a valid identifier");
+                throw new Exception($"! SEMANTIC ERROR : Parameters must be a valid identifier");
+            }
+            if (parameters.Contains(CurrentToken.Text))
+            {
+                throw new Exception($"! SEMANTIC ERROR : A parameter with the name '{CurrentToken.Text}' already exists insert another parameter name");
             }
             parameters.Add(CurrentToken.Text);
             TokenAhead();
@@ -109,7 +113,7 @@ class Parser
 
         if (CurrentToken.Type == TokenType.ColonToken)
         {
-            TokenAhead();
+            var comma = MatchToken(TokenType.ColonToken);
             var letChildExpression = ParseLetExpression();
             return new LetExpression(identifier, expression, letChildExpression);
         }
@@ -175,26 +179,52 @@ class Parser
                 return ParseBoolean();
             case TokenType.NumberToken:
                 return ParseNumber();
+
             case TokenType.Identifier:
+            case TokenType.SinKeyword:
+            case TokenType.CosKeyword:
+            case TokenType.RandKeyword :
+            case TokenType.SQRTKeyword:
                 return ParseIdentifierOrFunctionCall();
+
+            case TokenType.PIKeyword:
+                return ParsePIKeyword();
+            case TokenType.EulerKeyword:
+                return ParseEulerKeyword();
             default:
-                throw new Exception("Invalid Expression");
+                throw new Exception("! LEXICAL ERROR : Invalid Expression");
         }
     }
+
+    private HulkExpression ParseEulerKeyword()
+    {
+        var euler = MatchToken(TokenType.EulerKeyword);
+        return new HulkLiteralExpression(euler, Math.E);
+    }
+
+    private HulkExpression ParsePIKeyword()
+    {
+        var PI = MatchToken(TokenType.PIKeyword);
+        return new HulkLiteralExpression(PI, Math.PI);
+    }
+
     private HulkExpression ParseIdentifierOrFunctionCall()
     {
-        if (CurrentToken.Type == TokenType.Identifier && LookAhead(1).Type == TokenType.OpenParenthesisToken)
+        if ((CurrentToken.Type == TokenType.Identifier || CurrentToken.Type == TokenType.SinKeyword ||
+        CurrentToken.Type == TokenType.CosKeyword ||
+        CurrentToken.Type == TokenType.RandKeyword ||
+        CurrentToken.Type == TokenType.SQRTKeyword)
+        && LookAhead(1).Type == TokenType.OpenParenthesisToken)
         {
             return ParseFunctionCall(CurrentToken.Text);
         }
         return ParseIdentifier(CurrentToken);
     }
-
     private HulkExpression ParsePrintKeyword()
     {
         var printKeyword = MatchToken(TokenType.PrintKeyword);
         var expression = ParseExpression();
-        return new PrintDeclaration(printKeyword,expression);
+        return new PrintDeclaration(printKeyword, expression);
     }
 
     private HulkExpression ParseFunctionCall(string identifier)
@@ -218,7 +248,7 @@ class Parser
         }
 
         MatchToken(TokenType.CloseParenthesisToken);
-        
+
         return new FunctionCallExpression(identifier, parameters);
     }
 
@@ -230,7 +260,8 @@ class Parser
     private HulkExpression ParseString()
     {
         var stringToken = MatchToken(TokenType.StringToken);
-        return new HulkLiteralExpression(stringToken);
+        var resultStringToken = stringToken.Text[1..^1];//Obtener el string sin comillas
+        return new HulkLiteralExpression(stringToken, resultStringToken);
     }
     private HulkExpression ParseNumber()
     {

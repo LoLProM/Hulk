@@ -12,7 +12,6 @@ public class HulkLiteralExpression : HulkExpression
         Value = value;
     }
 
-
     public override Type ExpressionType => Value.GetType();
     public TokenType Type => TokenType.LiteralExpression;
     public Token LiteralToken { get; }

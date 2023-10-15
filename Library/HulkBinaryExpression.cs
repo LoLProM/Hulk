@@ -217,9 +217,16 @@ public class HulkBinaryExpression : HulkExpression
             {
                 return null;
             }
-            throw new Exception($"Cannot assign {Left.ExpressionType} to {Right.ExpressionType}");
         }
-        throw new InvalidOperationException($"Invalid expression: Can't operate {Left.ExpressionType} with {Right.ExpressionType} using {OperatorToken.Text}");
+        else if (OperatorToken.Type is TokenType.ArrobaToken)
+        {
+            if (Left.ExpressionType == Right.ExpressionType && Left.ExpressionType == typeof(string))
+            {
+                return typeof(string);
+            }
+            return null;
+        }
+        throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {Left.ExpressionType} with {Right.ExpressionType} using {OperatorToken.Text}");
     }
 }
 

@@ -31,9 +31,8 @@ public class HulkUnaryExpression : HulkExpression
             if (InternalExpression.ExpressionType == typeof(bool))
                 return typeof(bool);
         }
-        throw new NotImplementedException();
+        throw new Exception($"!SEMANTIC ERROR : Cannot applied {OperatorToken.Type} to {InternalExpression.ExpressionType}");
     }
-
 }
 
 

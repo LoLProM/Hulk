@@ -56,6 +56,6 @@ public class Scope
         {
             return variables[identifier.Text];
         }
-        return parent is null ? throw new Exception("Not identifier found") : parent.GetValue(identifier);
+        return parent is null ? throw new Exception($"! SEMANTIC ERROR : Undefine variable {identifier.Text}") : parent.GetValue(identifier);
     }
 }
