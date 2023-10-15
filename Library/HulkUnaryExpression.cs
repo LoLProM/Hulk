@@ -16,14 +16,14 @@ public class HulkUnaryExpression : HulkExpression
     {
         if (OperatorToken.Type == TokenType.PlusToken)
         {
-            if (InternalExpression.ExpressionType == typeof(int))
-                return typeof(int);
+            if (InternalExpression.ExpressionType == typeof(double))
+                return typeof(double);
         }
 
         else if (OperatorToken.Type == TokenType.MinusToken)
         {
-            if (InternalExpression.ExpressionType == typeof(int))
-                return typeof(int);
+            if (InternalExpression.ExpressionType == typeof(double))
+                return typeof(double);
         }
 
         else if (OperatorToken.Type == TokenType.NotToken)

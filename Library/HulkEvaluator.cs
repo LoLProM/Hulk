@@ -52,19 +52,28 @@ public class HulkEvaluator
     {
         if (functionCallExpression.FunctionName is "sin")
         {
-            return Math.Sin(Convert.ToDouble(EvaluateExpression(functionCallExpression.Parameters[0], scope)));
+            var sinResult = Convert.ToDouble(EvaluateExpression(functionCallExpression.Parameters[0], scope));
+            return Math.Sin(sinResult);
         }
         else if (functionCallExpression.FunctionName is "cos")
         {
-            return Math.Cos(Convert.ToDouble(EvaluateExpression(functionCallExpression.Parameters[0], scope)));
+            var cosResult = Convert.ToDouble(EvaluateExpression(functionCallExpression.Parameters[0], scope));
+            return Math.Cos(cosResult);
         }
         else if (functionCallExpression.FunctionName is "log")
         {
+            if (functionCallExpression.Parameters.Count == 2)
+            {
+                var number = Convert.ToDouble(EvaluateExpression(functionCallExpression.Parameters[0], scope));
+                var newBase = Convert.ToDouble(EvaluateExpression(functionCallExpression.Parameters[1], scope));
+                return Math.Log(number, newBase);
+            }
             return Math.Log(Convert.ToDouble(EvaluateExpression(functionCallExpression.Parameters[0], scope)));
         }
         else if (functionCallExpression.FunctionName is "sqrt")
         {
-            return Math.Sqrt(Convert.ToDouble(EvaluateExpression(functionCallExpression.Parameters[0], scope)));
+            var squareRootNumber = Convert.ToDouble(EvaluateExpression(functionCallExpression.Parameters[0], scope));
+            return Math.Sqrt(squareRootNumber);
         }
 
         if (!Parser.Functions.ContainsKey(functionCallExpression.FunctionName))
@@ -126,7 +135,7 @@ public class HulkEvaluator
         var value = EvaluateExpression(unary.InternalExpression, scope);
         if (unary.OperatorToken.Type == TokenType.MinusToken)
         {
-            return -(int)value;
+            return -(double)(value);
         }
         else if (unary.OperatorToken.Type == TokenType.PlusToken)
         {
@@ -150,41 +159,39 @@ public class HulkEvaluator
                 {
                     throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
                 }
-                return (int)left + (int)right;
+                return Convert.ToDouble(left) + Convert.ToDouble(right);
             case TokenType.MinusToken:
                 if (left.GetType() != right.GetType())
                 {
                     throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
                 }
-                return (int)left - (int)right;
+                return Convert.ToDouble(left) - Convert.ToDouble(right);
             case TokenType.MultiplyToken:
                 if (left.GetType() != right.GetType())
                 {
                     throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
                 }
-                return (int)left * (int)right;
+                return Convert.ToDouble(left) * Convert.ToDouble(right);
             case TokenType.DivisionToken:
-                if ((int)right == 0)
+                if (Convert.ToDouble(right) == 0)
                     throw new Exception("Cannot divide by zero");
                 if (left.GetType() != right.GetType())
                 {
                     throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
                 }
-                return (int)left / (int)right;
+                return Convert.ToDouble(left) / Convert.ToDouble(right);
             case TokenType.ModuleToken:
                 if (left.GetType() != right.GetType())
                 {
                     throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
                 }
-                return (int)left % (int)right;
+                return Convert.ToDouble(left) % Convert.ToDouble(right);
             case TokenType.ArrobaToken:
                 if (left.GetType() != right.GetType())
                 {
                     throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
                 }
-                var resultLeft = left.ToString();
-                var resultRight = right.ToString();
-                return resultLeft + resultRight;
+                return (string)left + (string)right;
             case TokenType.SingleAndToken:
                 if (left.GetType() != right.GetType())
                 {
@@ -202,25 +209,25 @@ public class HulkEvaluator
                 {
                     throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
                 }
-                return (int)left > (int)right;
+                return Convert.ToDouble(left) > Convert.ToDouble(right);
             case TokenType.BiggerOrEqualToken:
                 if (left.GetType() != right.GetType())
                 {
                     throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
                 }
-                return (int)left >= (int)right;
+                return Convert.ToDouble(left) >= Convert.ToDouble(right);
             case TokenType.LowerToken:
                 if (left.GetType() != right.GetType())
                 {
                     throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
                 }
-                return (int)left < (int)right;
+                return Convert.ToDouble(left) < Convert.ToDouble(right);
             case TokenType.LowerOrEqualToken:
                 if (left.GetType() != right.GetType())
                 {
                     throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
                 }
-                return (int)left <= (int)right;
+                return Convert.ToDouble(left) <= Convert.ToDouble(right);
             case TokenType.EqualToken:
                 return Equals(left, right);
             case TokenType.NotEqualToken:
@@ -230,7 +237,7 @@ public class HulkEvaluator
                 {
                     throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
                 }
-                return Pow((int)left, (int)right);
+                return Pow(Convert.ToDouble(left), Convert.ToDouble(right));
             default:
                 throw new Exception($"! SEMANTIC ERROR : Unexpected binary operator {binaryExpression.OperatorToken.Type}");
         }
@@ -247,9 +254,9 @@ public class HulkEvaluator
             return EvaluateExpression(ifElseStatement.ElseClause, scope.BuildChildScope());
         }
     }
-    private int Pow(int left, int right)
+    private double Pow(double left, double right)
     {
         if (left == 0 && right == 0) throw new Exception($"!SEMANTIC ERROR : {left} pow to {right} is not defined");
-        return (int)Math.Pow(left, right);
+        return Math.Pow(left, right);
     }
 }

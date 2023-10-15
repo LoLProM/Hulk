@@ -19,7 +19,8 @@ class Program
         "fib(7) * fact(3) + Sum(fib(3) + fact(5),fact(2)) + let a = 2 in a * 2;",
         "fact(let a = 2 in a + 3);",
         "fact(if (let a = if (2 < 3) 2 else 1 in fact(3+a) == fact(5)) 5 else 1);",
-        "fib( Sum(fact(2+fact(1)),1));"
+        "fib( Sum(fact(2+fact(1)),1));",
+        "fact(sin(0)+cos(0)+4+E-E);"
     };
     public static void Main(string[] args)
     {

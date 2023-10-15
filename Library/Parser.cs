@@ -97,6 +97,30 @@ class Parser
         TokenAhead();
         return parameters;
     }
+    private HulkExpression ParseFunctionCall(string identifier)
+    {
+        TokenAhead();
+        var parameters = new List<HulkExpression>();
+
+        MatchToken(TokenType.OpenParenthesisToken);
+        while (true)
+        {
+            if (CurrentToken.Type == TokenType.CloseParenthesisToken)
+            {
+                break;
+            }
+            var expression = ParseExpression();
+            parameters.Add(expression);
+            if (CurrentToken.Type == TokenType.ColonToken)
+            {
+                TokenAhead();
+            }
+        }
+
+        MatchToken(TokenType.CloseParenthesisToken);
+
+        return new FunctionCallExpression(identifier, parameters);
+    }
     private HulkExpression ParseLetInExpression()
     {
         var letKeyword = MatchToken(TokenType.LetToken);
@@ -183,7 +207,7 @@ class Parser
             case TokenType.Identifier:
             case TokenType.SinKeyword:
             case TokenType.CosKeyword:
-            case TokenType.RandKeyword :
+            case TokenType.LogKeyword :
             case TokenType.SQRTKeyword:
                 return ParseIdentifierOrFunctionCall();
 
@@ -212,7 +236,7 @@ class Parser
     {
         if ((CurrentToken.Type == TokenType.Identifier || CurrentToken.Type == TokenType.SinKeyword ||
         CurrentToken.Type == TokenType.CosKeyword ||
-        CurrentToken.Type == TokenType.RandKeyword ||
+        CurrentToken.Type == TokenType.LogKeyword ||
         CurrentToken.Type == TokenType.SQRTKeyword)
         && LookAhead(1).Type == TokenType.OpenParenthesisToken)
         {
@@ -226,32 +250,6 @@ class Parser
         var expression = ParseExpression();
         return new PrintDeclaration(printKeyword, expression);
     }
-
-    private HulkExpression ParseFunctionCall(string identifier)
-    {
-        TokenAhead();
-        var parameters = new List<HulkExpression>();
-
-        MatchToken(TokenType.OpenParenthesisToken);
-        while (true)
-        {
-            if (CurrentToken.Type == TokenType.CloseParenthesisToken)
-            {
-                break;
-            }
-            var expression = ParseExpression();
-            parameters.Add(expression);
-            if (CurrentToken.Type == TokenType.ColonToken)
-            {
-                TokenAhead();
-            }
-        }
-
-        MatchToken(TokenType.CloseParenthesisToken);
-
-        return new FunctionCallExpression(identifier, parameters);
-    }
-
     private HulkExpression ParseIdentifier(Token identifier)
     {
         TokenAhead();
@@ -266,7 +264,8 @@ class Parser
     private HulkExpression ParseNumber()
     {
         var number = MatchToken(TokenType.NumberToken);
-        return new HulkLiteralExpression(number);
+        var doubleNumber = Convert.ToDouble(number.Value);
+        return new HulkLiteralExpression(number, doubleNumber);
     }
     private HulkExpression ParseBoolean()
     {
