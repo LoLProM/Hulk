@@ -10,7 +10,6 @@ class Parser
         var lexer = new Lexer(text);
         tokens = lexer.Tokens;
     }
-
     private Token CurrentToken => LookAhead(0);
     private Token NextToken => LookAhead(1);
     private Token LookAhead(int offset)
@@ -52,7 +51,6 @@ class Parser
         }
         return ParseExpression();
     }
-
     private FunctionDeclarationExpression ParseFunctionDeclaration()
     {
         var functionKeyword = MatchToken(TokenType.FunctionKeyword);
@@ -120,6 +118,23 @@ class Parser
         MatchToken(TokenType.CloseParenthesisToken);
 
         return new FunctionCallExpression(identifier, parameters);
+    }
+    private HulkExpression ParseIdentifierOrFunctionCall()
+    {
+        if ((CurrentToken.Type == TokenType.Identifier || CurrentToken.Type == TokenType.SinKeyword ||
+        CurrentToken.Type == TokenType.CosKeyword ||
+        CurrentToken.Type == TokenType.LogKeyword ||
+        CurrentToken.Type == TokenType.SQRTKeyword)
+        && LookAhead(1).Type == TokenType.OpenParenthesisToken)
+        {
+            return ParseFunctionCall(CurrentToken.Text);
+        }
+        return ParseIdentifier(CurrentToken);
+    }
+    private HulkExpression ParseIdentifier(Token identifier)
+    {
+        TokenAhead();
+        return new HulkLiteralExpression(identifier);
     }
     private HulkExpression ParseLetInExpression()
     {
@@ -219,7 +234,25 @@ class Parser
                 throw new Exception("! LEXICAL ERROR : Invalid Expression");
         }
     }
-
+    private HulkExpression ParseParenthesizedExpression()
+    {
+        var left = TokenAhead();
+        var expression = ParseExpression();
+        var right = MatchToken(TokenType.CloseParenthesisToken);
+        return new HulkParenthesesExpression(left, expression, right);
+    }
+    private HulkExpression ParsePrintKeyword()
+    {
+        var printKeyword = MatchToken(TokenType.PrintKeyword);
+        var expression = ParseExpression();
+        return new PrintDeclaration(printKeyword, expression);
+    }
+    private HulkExpression ParseString()
+    {
+        var stringToken = MatchToken(TokenType.StringToken);
+        var resultStringToken = stringToken.Text[1..^1];//Obtener el string sin comillas
+        return new HulkLiteralExpression(stringToken, resultStringToken);
+    }
     private HulkExpression ParseEulerKeyword()
     {
         var euler = MatchToken(TokenType.EulerKeyword);
@@ -230,36 +263,6 @@ class Parser
     {
         var PI = MatchToken(TokenType.PIKeyword);
         return new HulkLiteralExpression(PI, Math.PI);
-    }
-
-    private HulkExpression ParseIdentifierOrFunctionCall()
-    {
-        if ((CurrentToken.Type == TokenType.Identifier || CurrentToken.Type == TokenType.SinKeyword ||
-        CurrentToken.Type == TokenType.CosKeyword ||
-        CurrentToken.Type == TokenType.LogKeyword ||
-        CurrentToken.Type == TokenType.SQRTKeyword)
-        && LookAhead(1).Type == TokenType.OpenParenthesisToken)
-        {
-            return ParseFunctionCall(CurrentToken.Text);
-        }
-        return ParseIdentifier(CurrentToken);
-    }
-    private HulkExpression ParsePrintKeyword()
-    {
-        var printKeyword = MatchToken(TokenType.PrintKeyword);
-        var expression = ParseExpression();
-        return new PrintDeclaration(printKeyword, expression);
-    }
-    private HulkExpression ParseIdentifier(Token identifier)
-    {
-        TokenAhead();
-        return new HulkLiteralExpression(identifier);
-    }
-    private HulkExpression ParseString()
-    {
-        var stringToken = MatchToken(TokenType.StringToken);
-        var resultStringToken = stringToken.Text[1..^1];//Obtener el string sin comillas
-        return new HulkLiteralExpression(stringToken, resultStringToken);
     }
     private HulkExpression ParseNumber()
     {
@@ -272,12 +275,5 @@ class Parser
         var keyword = TokenAhead();
         var booleanExpression = keyword.Type == TokenType.TrueKeyword;
         return new HulkLiteralExpression(keyword, booleanExpression);
-    }
-    private HulkExpression ParseParenthesizedExpression()
-    {
-        var left = TokenAhead();
-        var expression = ParseExpression();
-        var right = MatchToken(TokenType.CloseParenthesisToken);
-        return new HulkParenthesesExpression(left, expression, right);
     }
 }

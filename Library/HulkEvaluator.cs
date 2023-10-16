@@ -42,7 +42,6 @@ public class HulkEvaluator
         }
         throw new Exception($"! SYNTAX ERROR : Unexpected node {node}");
     }
-
     private object EvaluatePrintDeclaration(PrintDeclaration printDeclaration, Scope scope)
     {
         return EvaluateExpression(printDeclaration.ToPrintExpression, scope);
@@ -50,40 +49,36 @@ public class HulkEvaluator
 
     private object EvaluateFunctionCallExpression(FunctionCallExpression functionCallExpression, Scope scope)
     {
-        if (functionCallExpression.FunctionName is "sin")
+        #region Math functions
+        switch (functionCallExpression.FunctionName)
         {
-            var sinResult = Convert.ToDouble(EvaluateExpression(functionCallExpression.Parameters[0], scope));
-            return Math.Sin(sinResult);
+            case "sin":
+                {
+                    return EvaluateSin(functionCallExpression, scope);
+                }
+            case "cos":
+                {
+                    return EvaluateCos(functionCallExpression, scope);
+                }
+            case "log":
+                {
+                    return EvaluateLog(functionCallExpression, scope);
+                }
+            case "sqrt":
+                {
+                    return EvaluateSQRT(functionCallExpression, scope);
+                }
         }
-        else if (functionCallExpression.FunctionName is "cos")
-        {
-            var cosResult = Convert.ToDouble(EvaluateExpression(functionCallExpression.Parameters[0], scope));
-            return Math.Cos(cosResult);
-        }
-        else if (functionCallExpression.FunctionName is "log")
-        {
-            if (functionCallExpression.Parameters.Count == 2)
-            {
-                var number = Convert.ToDouble(EvaluateExpression(functionCallExpression.Parameters[0], scope));
-                var newBase = Convert.ToDouble(EvaluateExpression(functionCallExpression.Parameters[1], scope));
-                return Math.Log(number, newBase);
-            }
-            return Math.Log(Convert.ToDouble(EvaluateExpression(functionCallExpression.Parameters[0], scope)));
-        }
-        else if (functionCallExpression.FunctionName is "sqrt")
-        {
-            var squareRootNumber = Convert.ToDouble(EvaluateExpression(functionCallExpression.Parameters[0], scope));
-            return Math.Sqrt(squareRootNumber);
-        }
+        #endregion
 
         if (!Parser.Functions.ContainsKey(functionCallExpression.FunctionName))
         {
             throw new Exception($"!FUNCTION ERROR : Function {functionCallExpression.FunctionName} is not defined");
         }
         var functionDeclaration = Parser.Functions[functionCallExpression.FunctionName];
-        if (functionDeclaration.Arguments.Count != functionCallExpression.Parameters.Count)
+        if (functionDeclaration?.Arguments.Count != functionCallExpression.Parameters.Count)
         {
-            throw new Exception($"!FUNCTION ERROR : Function {functionCallExpression.FunctionName} does not have {functionCallExpression.Parameters.Count} parameters but {Parser.Functions[functionCallExpression.FunctionName].Arguments.Count} parameters");
+            throw new Exception($"!FUNCTION ERROR : Function {functionCallExpression.FunctionName} does not have {functionCallExpression.Parameters.Count} parameters but {Parser.Functions[functionCallExpression.FunctionName]?.Arguments.Count} parameters");
         }
 
         var parameters = functionCallExpression.Parameters;
@@ -92,11 +87,17 @@ public class HulkEvaluator
         var functionCallScope = new Scope();
         foreach (var (arg, param) in arguments.Zip(parameters))
         {
-            functionCallScope.AddVariable(arg, EvaluateExpression(param, scope.BuildChildScope()));
+            var evaluatedParameter = EvaluateExpression(param, scope.BuildChildScope());
+            if (evaluatedParameter is not Double)
+            {
+                throw new Exception($"!FUNCTION ERROR : Function {functionCallExpression.FunctionName} receives a {typeof(double)} but {evaluatedParameter.GetType()} was given");
+            }
+            functionCallScope.AddVariable(arg, evaluatedParameter);
         }
 
         return EvaluateExpression(functionDeclaration.FunctionBody, functionCallScope);
     }
+
 
     private object EvaluateLetInExpression(Let_In_Expression letInExpression, Scope scope)
     {
@@ -116,25 +117,44 @@ public class HulkEvaluator
         return EvaluateLetExpression(letExpression.LetChildExpression, scope.BuildChildScope());
     }
 
-    private object EvaluateLiteralExpression(HulkLiteralExpression literal, Scope scope)
+    private object EvaluateIfElseStatement(If_ElseStatement ifElseStatement, Scope scope)
     {
-        if (literal.LiteralToken.Type is TokenType.Identifier)
+        var condition = EvaluateExpression(ifElseStatement.IfCondition, scope.BuildChildScope());
+        bool boolCondition = false;
+        boolCondition = CheckBooleanType(condition);
+        if (boolCondition)
         {
-            return scope.GetValue(literal.LiteralToken);
+            return EvaluateExpression(ifElseStatement.IfStatement, scope.BuildChildScope());
         }
-        return literal.Value;
+        else
+        {
+            return EvaluateExpression(ifElseStatement.ElseClause, scope.BuildChildScope());
+        }
+    }
+    private static bool CheckBooleanType(object condition)
+    {
+        bool boolCondition;
+        if (condition.GetType() == typeof(bool))
+        {
+            boolCondition = (bool)condition;
+        }
+        else
+        {
+            throw new Exception("! SEMANTIC ERROR : If-ELSE expressions must have a boolean condition");
+        }
+        return boolCondition;
     }
 
     private object EvaluateParenthesesExpression(HulkParenthesesExpression parenthesesExpression, Scope scope)
     {
         return EvaluateExpression(parenthesesExpression.InsideExpression, scope.BuildChildScope());
     }
-
     private object EvaluateUnaryExpression(HulkUnaryExpression unary, Scope scope)
     {
         var value = EvaluateExpression(unary.InternalExpression, scope);
         if (unary.OperatorToken.Type == TokenType.MinusToken)
         {
+            if ((double)value == 0) return value;
             return -(double)(value);
         }
         else if (unary.OperatorToken.Type == TokenType.PlusToken)
@@ -147,6 +167,77 @@ public class HulkEvaluator
         }
         throw new Exception($"!SEMANTIC ERROR : Invalid unary operator {unary.OperatorToken}");
     }
+    private object EvaluateSQRT(FunctionCallExpression functionCallExpression, Scope scope)
+    {
+        if (functionCallExpression.Parameters.Count != 1)
+        {
+            throw new Exception($"! SEMANTIC ERROR : Function sqrt(x) receives one argument not {functionCallExpression.Parameters.Count}");
+        }
+        var squareRootNumber = EvaluateExpression(functionCallExpression.Parameters[0], scope);
+        if (squareRootNumber is not Double)
+        {
+            throw new Exception($"! SEMANTIC ERROR : Function sqrt(x) receives a double argument not {squareRootNumber.GetType()}");
+        }
+        return Math.Sqrt((double)squareRootNumber);
+    }
+    private object EvaluateLog(FunctionCallExpression functionCallExpression, Scope scope)
+    {
+        if (functionCallExpression.Parameters.Count > 2)
+        {
+            throw new Exception($"! SEMANTIC ERROR : Log Function cannot receive more than 2 arguments but {functionCallExpression.Parameters.Count} were given");
+        }
+        if (functionCallExpression.Parameters.Count == 2)
+        {
+            var number = EvaluateExpression(functionCallExpression.Parameters[0], scope);
+            var newBase = EvaluateExpression(functionCallExpression.Parameters[1], scope);
+            if (number is Double && newBase is Double)
+            {
+                return Math.Log((double)number, (double)newBase);
+            }
+            else
+            {
+                if (number is not Double)
+                {
+                    throw new Exception($"! SEMANTIC ERROR : Function log(x,y) receives a double argument not {number.GetType()}");
+                }
+
+                throw new Exception($"! SEMANTIC ERROR : Function log(x,y) receives a double argument not {newBase.GetType()}");
+            }
+        }
+
+        var logNumber = EvaluateExpression(functionCallExpression.Parameters[0], scope);
+        if (logNumber is not Double)
+        {
+            throw new Exception($"! SEMANTIC ERROR : Function log(x) receives a double argument not {logNumber.GetType()}");
+        }
+        return Math.Log((double)logNumber);
+    }
+    private object EvaluateCos(FunctionCallExpression functionCallExpression, Scope scope)
+    {
+        if (functionCallExpression.Parameters.Count != 1)
+        {
+            throw new Exception($"! SEMANTIC ERROR : Function cos(x) receives one argument not {functionCallExpression.Parameters.Count}");
+        }
+        var cosResult = EvaluateExpression(functionCallExpression.Parameters[0], scope);
+        if (cosResult is not Double)
+        {
+            throw new Exception($"! SEMANTIC ERROR : Function cos(x) receives a double argument not {cosResult.GetType()}");
+        }
+        return Math.Cos((double)cosResult);
+    }
+    private object EvaluateSin(FunctionCallExpression functionCallExpression, Scope scope)
+    {
+        if (functionCallExpression.Parameters.Count != 1)
+        {
+            throw new Exception($"! SEMANTIC ERROR : Function sen(x) receives one argument not {functionCallExpression.Parameters.Count}");
+        }
+        var sinResult = EvaluateExpression(functionCallExpression.Parameters[0], scope);
+        if (sinResult is not Double)
+        {
+            throw new Exception($"! SEMANTIC ERROR : Function sen(x) receives a double argument not {sinResult.GetType()}");
+        }
+        return Math.Sin((double)sinResult);
+    }
     private object EvaluateBinaryExpression(HulkBinaryExpression binaryExpression, Scope scope)
     {
         var left = EvaluateExpression(binaryExpression.Left, scope);
@@ -155,108 +246,72 @@ public class HulkEvaluator
         switch (binaryExpression.OperatorToken.Type)
         {
             case TokenType.PlusToken:
-                if (left.GetType() != right.GetType())
-                {
-                    throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
-                }
-                return Convert.ToDouble(left) + Convert.ToDouble(right);
+                CheckTypes(binaryExpression, left, right);
+                return (double)left + (double)right;
             case TokenType.MinusToken:
-                if (left.GetType() != right.GetType())
-                {
-                    throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
-                }
-                return Convert.ToDouble(left) - Convert.ToDouble(right);
+                CheckTypes(binaryExpression, left, right);
+                return (double)left - (double)right;
             case TokenType.MultiplyToken:
-                if (left.GetType() != right.GetType())
-                {
-                    throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
-                }
-                return Convert.ToDouble(left) * Convert.ToDouble(right);
+                CheckTypes(binaryExpression, left, right);
+                return (double)left * (double)right;
             case TokenType.DivisionToken:
-                if (Convert.ToDouble(right) == 0)
+                if ((double)right == 0)
                     throw new Exception("Cannot divide by zero");
-                if (left.GetType() != right.GetType())
-                {
-                    throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
-                }
-                return Convert.ToDouble(left) / Convert.ToDouble(right);
+                CheckTypes(binaryExpression, left, right);
+                return (double)left / (double)right;
             case TokenType.ModuleToken:
-                if (left.GetType() != right.GetType())
-                {
-                    throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
-                }
-                return Convert.ToDouble(left) % Convert.ToDouble(right);
+                CheckTypes(binaryExpression, left, right);
+                return (double)left % (double)right;
             case TokenType.ArrobaToken:
-                if (left.GetType() != right.GetType())
-                {
-                    throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
-                }
+                CheckTypes(binaryExpression, left, right);
                 return (string)left + (string)right;
             case TokenType.SingleAndToken:
-                if (left.GetType() != right.GetType())
-                {
-                    throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
-                }
+                CheckTypes(binaryExpression, left, right);
                 return (bool)left && (bool)right;
             case TokenType.SingleOrToken:
-                if (left.GetType() != right.GetType())
-                {
-                    throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
-                }
+                CheckTypes(binaryExpression, left, right);
                 return (bool)left || (bool)right;
             case TokenType.BiggerToken:
-                if (left.GetType() != right.GetType())
-                {
-                    throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
-                }
-                return Convert.ToDouble(left) > Convert.ToDouble(right);
+                CheckTypes(binaryExpression, left, right);
+                return (double)left > (double)right;
             case TokenType.BiggerOrEqualToken:
-                if (left.GetType() != right.GetType())
-                {
-                    throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
-                }
-                return Convert.ToDouble(left) >= Convert.ToDouble(right);
+                CheckTypes(binaryExpression, left, right);
+                return (double)left >= (double)right;
             case TokenType.LowerToken:
-                if (left.GetType() != right.GetType())
-                {
-                    throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
-                }
-                return Convert.ToDouble(left) < Convert.ToDouble(right);
+                CheckTypes(binaryExpression, left, right);
+                return (double)left < (double)right;
             case TokenType.LowerOrEqualToken:
-                if (left.GetType() != right.GetType())
-                {
-                    throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
-                }
-                return Convert.ToDouble(left) <= Convert.ToDouble(right);
+                CheckTypes(binaryExpression, left, right);
+                return (double)left <= (double)right;
             case TokenType.EqualToken:
                 return Equals(left, right);
             case TokenType.NotEqualToken:
                 return !Equals(left, right);
             case TokenType.ExponentialToken:
-                if (left.GetType() != right.GetType())
-                {
-                    throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
-                }
-                return Pow(Convert.ToDouble(left), Convert.ToDouble(right));
+                CheckTypes(binaryExpression, left, right);
+                return Pow((double)left, (double)right);
             default:
                 throw new Exception($"! SEMANTIC ERROR : Unexpected binary operator {binaryExpression.OperatorToken.Type}");
         }
     }
-    private object EvaluateIfElseStatement(If_ElseStatement ifElseStatement, Scope scope)
+    private object EvaluateLiteralExpression(HulkLiteralExpression literal, Scope scope)
     {
-        var condition = (bool)EvaluateExpression(ifElseStatement.IfCondition, scope.BuildChildScope());
-        if (condition)
+        if (literal.LiteralToken.Type is TokenType.Identifier)
         {
-            return EvaluateExpression(ifElseStatement.IfStatement, scope.BuildChildScope());
+            return scope.GetValue(literal.LiteralToken);
         }
-        else
-        {
-            return EvaluateExpression(ifElseStatement.ElseClause, scope.BuildChildScope());
-        }
+        return literal.Value;
     }
     private double Pow(double left, double right)
     {
         if (left == 0 && right == 0) throw new Exception($"!SEMANTIC ERROR : {left} pow to {right} is not defined");
         return Math.Pow(left, right);
+    }
+    private static void CheckTypes(HulkBinaryExpression binaryExpression, object left, object right)
+    {
+        if (left.GetType() != right.GetType())
+        {
+            throw new Exception($"!SEMANTIC ERROR : Invalid expression: Can't operate {left.GetType()} with {right.GetType()} using {binaryExpression.OperatorToken.Text}");
+        }
     }
 }
