@@ -11,7 +11,7 @@ public class HulkEvaluator
     }
     public object Evaluate()
     {
-        Scope scope = new();
+        Scope scope = StandardLibrary.Variables;
         return EvaluateExpression(_node, scope);
     }
     private object EvaluateExpression(HulkExpression node, Scope scope)
@@ -35,50 +35,30 @@ public class HulkEvaluator
                 return EvaluateIfElseStatement(ifElseStatement, scope);
             case Let_In_Expression letInExpression:
                 return EvaluateLetInExpression(letInExpression, scope);
-            case PrintDeclaration printDeclaration:
-                return EvaluatePrintDeclaration(printDeclaration, scope);
             case FunctionCallExpression functionCallExpression:
                 return EvaluateFunctionCallExpression(functionCallExpression, scope);
+            case FunctionReference functionReference:
+                return EvaluateFunctionReference(functionReference, scope);
+            
         }
         throw new Exception($"! SYNTAX ERROR : Unexpected node {node}");
     }
-    private object EvaluatePrintDeclaration(PrintDeclaration printDeclaration, Scope scope)
+
+    private object EvaluateFunctionReference(FunctionReference functionReference, Scope scope)
     {
-        return EvaluateExpression(printDeclaration.ToPrintExpression, scope);
+        return functionReference.Eval(scope);
     }
 
     private object EvaluateFunctionCallExpression(FunctionCallExpression functionCallExpression, Scope scope)
     {
-        #region Math functions
-        switch (functionCallExpression.FunctionName)
-        {
-            case "sin":
-                {
-                    return EvaluateSin(functionCallExpression, scope);
-                }
-            case "cos":
-                {
-                    return EvaluateCos(functionCallExpression, scope);
-                }
-            case "log":
-                {
-                    return EvaluateLog(functionCallExpression, scope);
-                }
-            case "sqrt":
-                {
-                    return EvaluateSQRT(functionCallExpression, scope);
-                }
-        }
-        #endregion
-
-        if (!Parser.Functions.ContainsKey(functionCallExpression.FunctionName))
+        if (!StandardLibrary.Functions.ContainsKey(functionCallExpression.FunctionName))
         {
             throw new Exception($"!FUNCTION ERROR : Function {functionCallExpression.FunctionName} is not defined");
         }
-        var functionDeclaration = Parser.Functions[functionCallExpression.FunctionName];
+        var functionDeclaration = StandardLibrary.Functions[functionCallExpression.FunctionName];
         if (functionDeclaration?.Arguments.Count != functionCallExpression.Parameters.Count)
         {
-            throw new Exception($"!FUNCTION ERROR : Function {functionCallExpression.FunctionName} does not have {functionCallExpression.Parameters.Count} parameters but {Parser.Functions[functionCallExpression.FunctionName]?.Arguments.Count} parameters");
+            throw new Exception($"!FUNCTION ERROR : Function {functionCallExpression.FunctionName} does not have {functionCallExpression.Parameters.Count} parameters but {StandardLibrary.Functions[functionCallExpression.FunctionName]?.Arguments.Count} parameters");
         }
 
         var parameters = functionCallExpression.Parameters;
@@ -88,27 +68,20 @@ public class HulkEvaluator
         foreach (var (arg, param) in arguments.Zip(parameters))
         {
             var evaluatedParameter = EvaluateExpression(param, scope.BuildChildScope());
-            if (evaluatedParameter is not Double)
-            {
-                throw new Exception($"!FUNCTION ERROR : Function {functionCallExpression.FunctionName} receives a {typeof(double)} but {evaluatedParameter.GetType()} was given");
-            }
             functionCallScope.AddVariable(arg, evaluatedParameter);
         }
 
         return EvaluateExpression(functionDeclaration.FunctionBody, functionCallScope);
     }
-
-
     private object EvaluateLetInExpression(Let_In_Expression letInExpression, Scope scope)
     {
         var inScope = EvaluateLetExpression(letInExpression.LetExpression, scope);
         var inExpression = EvaluateExpression(letInExpression.InExpression, inScope);
         return inExpression;
     }
-
     private Scope EvaluateLetExpression(LetExpression letExpression, Scope scope)
     {
-        var evaluateLetExpression = EvaluateExpression(letExpression.Expression, scope);
+        var evaluateLetExpression = EvaluateExpression(letExpression.Expression, scope.BuildChildScope());
         scope.AddVariable(letExpression.Identifier.Text, evaluateLetExpression);
         if (letExpression.LetChildExpression is null)
         {
@@ -144,7 +117,6 @@ public class HulkEvaluator
         }
         return boolCondition;
     }
-
     private object EvaluateParenthesesExpression(HulkParenthesesExpression parenthesesExpression, Scope scope)
     {
         return EvaluateExpression(parenthesesExpression.InsideExpression, scope.BuildChildScope());
@@ -167,77 +139,6 @@ public class HulkEvaluator
         }
         throw new Exception($"!SEMANTIC ERROR : Invalid unary operator {unary.OperatorToken}");
     }
-    private object EvaluateSQRT(FunctionCallExpression functionCallExpression, Scope scope)
-    {
-        if (functionCallExpression.Parameters.Count != 1)
-        {
-            throw new Exception($"! SEMANTIC ERROR : Function sqrt(x) receives one argument not {functionCallExpression.Parameters.Count}");
-        }
-        var squareRootNumber = EvaluateExpression(functionCallExpression.Parameters[0], scope);
-        if (squareRootNumber is not Double)
-        {
-            throw new Exception($"! SEMANTIC ERROR : Function sqrt(x) receives a double argument not {squareRootNumber.GetType()}");
-        }
-        return Math.Sqrt((double)squareRootNumber);
-    }
-    private object EvaluateLog(FunctionCallExpression functionCallExpression, Scope scope)
-    {
-        if (functionCallExpression.Parameters.Count > 2)
-        {
-            throw new Exception($"! SEMANTIC ERROR : Log Function cannot receive more than 2 arguments but {functionCallExpression.Parameters.Count} were given");
-        }
-        if (functionCallExpression.Parameters.Count == 2)
-        {
-            var number = EvaluateExpression(functionCallExpression.Parameters[0], scope);
-            var newBase = EvaluateExpression(functionCallExpression.Parameters[1], scope);
-            if (number is Double && newBase is Double)
-            {
-                return Math.Log((double)number, (double)newBase);
-            }
-            else
-            {
-                if (number is not Double)
-                {
-                    throw new Exception($"! SEMANTIC ERROR : Function log(x,y) receives a double argument not {number.GetType()}");
-                }
-
-                throw new Exception($"! SEMANTIC ERROR : Function log(x,y) receives a double argument not {newBase.GetType()}");
-            }
-        }
-
-        var logNumber = EvaluateExpression(functionCallExpression.Parameters[0], scope);
-        if (logNumber is not Double)
-        {
-            throw new Exception($"! SEMANTIC ERROR : Function log(x) receives a double argument not {logNumber.GetType()}");
-        }
-        return Math.Log((double)logNumber);
-    }
-    private object EvaluateCos(FunctionCallExpression functionCallExpression, Scope scope)
-    {
-        if (functionCallExpression.Parameters.Count != 1)
-        {
-            throw new Exception($"! SEMANTIC ERROR : Function cos(x) receives one argument not {functionCallExpression.Parameters.Count}");
-        }
-        var cosResult = EvaluateExpression(functionCallExpression.Parameters[0], scope);
-        if (cosResult is not Double)
-        {
-            throw new Exception($"! SEMANTIC ERROR : Function cos(x) receives a double argument not {cosResult.GetType()}");
-        }
-        return Math.Cos((double)cosResult);
-    }
-    private object EvaluateSin(FunctionCallExpression functionCallExpression, Scope scope)
-    {
-        if (functionCallExpression.Parameters.Count != 1)
-        {
-            throw new Exception($"! SEMANTIC ERROR : Function sen(x) receives one argument not {functionCallExpression.Parameters.Count}");
-        }
-        var sinResult = EvaluateExpression(functionCallExpression.Parameters[0], scope);
-        if (sinResult is not Double)
-        {
-            throw new Exception($"! SEMANTIC ERROR : Function sen(x) receives a double argument not {sinResult.GetType()}");
-        }
-        return Math.Sin((double)sinResult);
-    }
     private object EvaluateBinaryExpression(HulkBinaryExpression binaryExpression, Scope scope)
     {
         var left = EvaluateExpression(binaryExpression.Left, scope);
@@ -256,15 +157,14 @@ public class HulkEvaluator
                 return (double)left * (double)right;
             case TokenType.DivisionToken:
                 if ((double)right == 0)
-                    throw new Exception("Cannot divide by zero");
+                    throw new Exception("! SEMANTIC ERROR : Cannot divide by zero");
                 CheckTypes(binaryExpression, left, right);
                 return (double)left / (double)right;
             case TokenType.ModuleToken:
                 CheckTypes(binaryExpression, left, right);
                 return (double)left % (double)right;
             case TokenType.ArrobaToken:
-                CheckTypes(binaryExpression, left, right);
-                return (string)left + (string)right;
+                return left.ToString() + right.ToString();
             case TokenType.SingleAndToken:
                 CheckTypes(binaryExpression, left, right);
                 return (bool)left && (bool)right;
@@ -298,7 +198,7 @@ public class HulkEvaluator
     {
         if (literal.LiteralToken.Type is TokenType.Identifier)
         {
-            return scope.GetValue(literal.LiteralToken);
+            return scope.GetValue(literal.LiteralToken.Text);
         }
         return literal.Value;
     }

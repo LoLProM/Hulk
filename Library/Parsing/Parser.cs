@@ -4,7 +4,6 @@ class Parser
 {
     private int position;
     private List<Token> tokens;
-    public static Dictionary<string, FunctionDeclarationExpression?> Functions = new();
     public Parser(string text)
     {
         var lexer = new Lexer(text);
@@ -33,7 +32,7 @@ class Parser
         {
             return TokenAhead();
         }
-        throw new Exception($"!SYNTAX ERROR : Not find {type} after {LookAhead(-1).Type} {LookAhead(-1).Text}");
+        throw new Exception($"!SYNTAX ERROR : Not find {type} after {LookAhead(-1).Type} {LookAhead(-1).Text} in position {position}");
     }
 
     public ASTree Parse()
@@ -60,9 +59,9 @@ class Parser
         var functionBody = ParseExpression();
         var functionDeclaration = new FunctionDeclarationExpression(functionName.Text, functionParameters, functionBody);
 
-        if (!Functions.ContainsKey(functionName.Text))
+        if (!StandardLibrary.Functions.ContainsKey(functionName.Text))
         {
-            Functions.Add(functionName.Text, functionDeclaration);
+            StandardLibrary.Functions.Add(functionName.Text, functionDeclaration);
         }
         else
         {
@@ -76,6 +75,11 @@ class Parser
     {
         MatchToken(TokenType.OpenParenthesisToken);
         var parameters = new List<string>();
+        if (CurrentToken.Type is TokenType.CloseParenthesisToken)
+        {
+            TokenAhead();
+            return parameters;
+        }
         parameters.Add(CurrentToken.Text);
         TokenAhead();
         while (CurrentToken.Type == TokenType.ColonToken)
@@ -121,10 +125,7 @@ class Parser
     }
     private HulkExpression ParseIdentifierOrFunctionCall()
     {
-        if ((CurrentToken.Type == TokenType.Identifier || CurrentToken.Type == TokenType.SinKeyword ||
-        CurrentToken.Type == TokenType.CosKeyword ||
-        CurrentToken.Type == TokenType.LogKeyword ||
-        CurrentToken.Type == TokenType.SQRTKeyword)
+        if (CurrentToken.Type == TokenType.Identifier
         && LookAhead(1).Type == TokenType.OpenParenthesisToken)
         {
             return ParseFunctionCall(CurrentToken.Text);
@@ -203,8 +204,6 @@ class Parser
     {
         switch (CurrentToken.Type)
         {
-            case TokenType.PrintKeyword:
-                return ParsePrintKeyword();
             case TokenType.LetToken:
                 return ParseLetInExpression();
             case TokenType.IfKeyword:
@@ -218,20 +217,10 @@ class Parser
                 return ParseBoolean();
             case TokenType.NumberToken:
                 return ParseNumber();
-
             case TokenType.Identifier:
-            case TokenType.SinKeyword:
-            case TokenType.CosKeyword:
-            case TokenType.LogKeyword :
-            case TokenType.SQRTKeyword:
                 return ParseIdentifierOrFunctionCall();
-
-            case TokenType.PIKeyword:
-                return ParsePIKeyword();
-            case TokenType.EulerKeyword:
-                return ParseEulerKeyword();
             default:
-                throw new Exception("! LEXICAL ERROR : Invalid Expression");
+                throw new Exception("! SYNTAX ERROR : Invalid Expression");
         }
     }
     private HulkExpression ParseParenthesizedExpression()
@@ -241,28 +230,11 @@ class Parser
         var right = MatchToken(TokenType.CloseParenthesisToken);
         return new HulkParenthesesExpression(left, expression, right);
     }
-    private HulkExpression ParsePrintKeyword()
-    {
-        var printKeyword = MatchToken(TokenType.PrintKeyword);
-        var expression = ParseExpression();
-        return new PrintDeclaration(printKeyword, expression);
-    }
     private HulkExpression ParseString()
     {
         var stringToken = MatchToken(TokenType.StringToken);
         var resultStringToken = stringToken.Text[1..^1];//Obtener el string sin comillas
         return new HulkLiteralExpression(stringToken, resultStringToken);
-    }
-    private HulkExpression ParseEulerKeyword()
-    {
-        var euler = MatchToken(TokenType.EulerKeyword);
-        return new HulkLiteralExpression(euler, Math.E);
-    }
-
-    private HulkExpression ParsePIKeyword()
-    {
-        var PI = MatchToken(TokenType.PIKeyword);
-        return new HulkLiteralExpression(PI, Math.PI);
     }
     private HulkExpression ParseNumber()
     {

@@ -4,6 +4,9 @@ class Program
 {
     static string[] inputs = {
         // "2*2+2/2;",
+        "function candela() => \"candela\";",
+        "sin(0);",
+        "2.5;",
         "function fact(x) => if (x == 1) 1 else x * fact(x-1);",
         "fact(14);",
         "function Sum(x,y) => x + y;",
@@ -50,7 +53,7 @@ class Program
                 var result = evaluator.Evaluate();
 
                 Console.WriteLine();
-                Console.WriteLine($"EL Resultado es {result}");
+                Console.WriteLine($"{result}");
                 Console.WriteLine();
             }
             catch(Exception e)

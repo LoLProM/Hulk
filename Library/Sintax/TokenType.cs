@@ -38,14 +38,6 @@ public enum TokenType
     IfKeyword,
     ElseKeyword,
     FunctionKeyword,
-    PrintKeyword,
-    SinKeyword,
-    CosKeyword,
-    RandKeyword,
-    LogKeyword,
-    EulerKeyword,
-    PIKeyword,
-    SQRTKeyword,
 
     // Expressions
     LiteralExpression,

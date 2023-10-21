@@ -3,12 +3,8 @@ namespace HulkProject;
 public class Scope
 {
     protected Scope? parent;
-
     protected Scope? child;
     private Dictionary<string, object> variables;
-
-    public static Scope EmptyScope => new Scope();
-    
     public Scope()
     {
         variables = new Dictionary<string, object>();
@@ -40,22 +36,12 @@ public class Scope
         newScope.parent = this;
         return newScope;
     }
-
-    public Scope BottomScope()
+    public object GetValue(string identifier)
     {
-        var scope = this;
-        while (scope.child is not null)
+        if(variables.ContainsKey(identifier))
         {
-            scope = scope.child;
+            return variables[identifier];
         }
-        return scope;
-    }
-    public object GetValue(Token identifier)
-    {
-        if(variables.ContainsKey(identifier.Text))
-        {
-            return variables[identifier.Text];
-        }
-        return parent is null ? throw new Exception($"! SEMANTIC ERROR : Undefine variable {identifier.Text}") : parent.GetValue(identifier);
+        return parent is null ? throw new Exception($"! SEMANTIC ERROR : Undefine variable {identifier}") : parent.GetValue(identifier);
     }
 }

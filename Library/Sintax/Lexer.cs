@@ -6,15 +6,11 @@ class Lexer
 {
     public List<Token> Tokens = new List<Token>();
     int position = 0;
-
-    public string Text;
-
     public Lexer(string textInput)
     {
-        Text = textInput;
         textInput = Regex.Replace(textInput, @"\s+", " ");
 
-        Regex SyntaxTokens = new(@"\d+[^\D]|\+|\-|\*|\^|%|\(|\)|(=>)|(>=)|(<=)|<[=]{0}|>[=]{0}|!=|;|,|={1,2}|!|\&|\||(\u0022([^\u0022\\]|\\.)*\u0022)|@|[a-zA-Z]+\w*|/|[^\(\)\+\-\*/\^%<>=!&\|,;\s]+");
+        Regex SyntaxTokens = new(@"\d+[^\D]|^-{0,1}\d+$|^-{0,1}\d+\.\d+E(\+|-)\d+$|^-{0,1}\d+\.\d+$|\+|\-|\*|\^|%|\(|\)|(=>)|(>=)|(<=)|<[=]{0}|>[=]{0}|!=|;|,|={1,2}|!|\&|\||(\u0022([^\u0022\\]|\\.)*\u0022)|@|[a-zA-Z]+\w*|/|[^\(\)\+\-\*/\^%<>=!&\|,;\s]+");
 
         var matches = SyntaxTokens.Matches(textInput);
 
@@ -28,7 +24,7 @@ class Lexer
     {
         if (IsNumber(match))
         {
-            int.TryParse(match.Value, out var value);
+            double.TryParse(match.Value, out var value);
             return new Token(match.Value, TokenType.NumberToken, match.Index, value);
         }
 
@@ -68,34 +64,6 @@ class Lexer
         else if (IsFunction(match))
         {
             return new Token(match.Value, TokenType.FunctionKeyword, match.Index, match.Value);
-        }
-        else if (IsSinFunction(match))
-        {
-            return new Token(match.Value, TokenType.SinKeyword, match.Index, match.Value);
-        }
-        else if (IsCosFunction(match))
-        {
-            return new Token(match.Value, TokenType.CosKeyword, match.Index, match.Value);
-        }
-        else if (IsLogFunction(match))
-        {
-            return new Token(match.Value, TokenType.LogKeyword, match.Index, match.Value);
-        }
-        else if (IsRandFunction(match))
-        {
-            return new Token(match.Value, TokenType.RandKeyword, match.Index, match.Value);
-        }
-        else if (IsPIKeyword(match))
-        {
-            return new Token(match.Value, TokenType.PIKeyword, match.Index, match.Value);
-        }
-        else if (IsEulerKeyword(match))
-        {
-            return new Token(match.Value, TokenType.EulerKeyword,match.Index,match.Value);
-        }
-        else if (IsPrintKeyword(match))
-        {
-            return new Token(match.Value, TokenType.PrintKeyword, match.Index, match.Value);
         }
         else if (IsIdentifier(match))
         {
@@ -149,77 +117,6 @@ class Lexer
         }
         throw new Exception($"! LEXICAL ERROR : '{match.Value}' is not a valid token");
     }
-
-    private bool IsEulerKeyword(Match match)
-    {
-        if (match.Value == "E")
-        {
-            position++;
-            return true;
-        }
-        return false;
-    }
-
-    private bool IsPIKeyword(Match match)
-    {
-        if (match.Value == "PI")
-        {
-            position++;
-            return true;
-        }
-        return false;
-    }
-
-    private bool IsSinFunction(Match match)
-    {
-        if (match.Value == "sin")
-        {
-            position++;
-            return true;
-        }
-        return false;
-    }
-
-    private bool IsCosFunction(Match match)
-    {
-        if (match.Value == "cos")
-        {
-            position++;
-            return true;
-        }
-        return false;
-    }
-
-    private bool IsLogFunction(Match match)
-    {
-        if (match.Value == "log")
-        {
-            position++;
-            return true;
-        }
-        return false;
-    }
-
-    private bool IsRandFunction(Match match)
-    {
-        if (match.Value == "rand")
-        {
-            position++;
-            return true;
-        }
-        return false;
-    }
-
-    private bool IsPrintKeyword(Match match)
-    {
-        if (match.Value == "print")
-        {
-            position++;
-            return true;
-        }
-        return false;
-    }
-
     private bool IsFunction(Match match)
     {
         if (match.Value == "function")
@@ -334,6 +231,7 @@ class Lexer
     {
         var count = 0;
         var position = 0;
+        var separator = 0;
 
         while (char.IsDigit(match.Value[position]))
         {
@@ -343,8 +241,15 @@ class Lexer
             {
                 break;
             }
+            if (match.Value[position] == '.')
+            {
+                separator++;
+                count++;
+                position++;
+                continue;
+            }
         }
-        if (count != match.Value.Length)
+        if (count != match.Value.Length || separator > 1)
         {
             return false;
         }
