@@ -1,6 +1,7 @@
 namespace HulkProject;
 
 public class HulkBinaryExpression : HulkExpression
+//Esta clase es la representacion de la Expresion Binaria que tiene una parte izquierda una derecha y un operador el type de la expresion devuelve si la izquierda y la derecha son de un tipo en especifico dependiendo del operador si tenemos un operador booleano y la izquierda y derecha son numeros el tipo de la expression binaria es booleano
 {
     public HulkBinaryExpression(HulkExpression left, Token operatorToken, HulkExpression right)
     {

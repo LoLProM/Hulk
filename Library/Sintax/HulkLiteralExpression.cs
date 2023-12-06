@@ -1,6 +1,7 @@
 namespace HulkProject;
 
 public class HulkLiteralExpression : HulkExpression
+//Esta clase es la representacion de una expresion literal (booleanos, numeros, strings..)
 {
     public HulkLiteralExpression(Token literalToken) : this (literalToken,literalToken.Value)
     {

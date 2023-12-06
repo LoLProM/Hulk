@@ -1,6 +1,6 @@
 namespace HulkProject
 {
-    class ASTree
+    class ASTree //Arbol que devuelve el parser
     {
         public ASTree(HulkExpression root, Token endOfLineToken)
         {

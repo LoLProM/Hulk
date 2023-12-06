@@ -1,5 +1,6 @@
 namespace HulkProject;
 public class Token
+//Clase que contiene que es un objeto de tipo Token
 {
     public string Text { get; }
     public int Position { get; }

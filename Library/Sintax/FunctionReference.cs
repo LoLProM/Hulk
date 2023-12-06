@@ -4,7 +4,7 @@ namespace HulkProject
     {
         private Func<Scope, object> function;
 
-        public FunctionReference (Func<Scope, object> function)
+        public FunctionReference(Func<Scope, object> function)
         {
             this.function = function;
         }

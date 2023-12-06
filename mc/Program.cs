@@ -1,9 +1,9 @@
 ﻿namespace HulkProject;
-
 class Program
 {
-    static string[] inputs = {
-        // "2*2+2/2;",
+    static string[] inputs = {// Tests 
+        "2+2*2/2;",
+        "log2(2)",
         "function candela() => \"candela\";",
         "sin(0);",
         "2.5;",
@@ -13,7 +13,7 @@ class Program
         "function fib(x) => if (x == 1 | x == 0) 1 else fib(x-1) + fib(x-2);",
         "fib(\"string\");",
         "if (let a = 2 in a ==2 ) a else 1;",
-        "function Sum(x,y,z) => x + y + z;",
+        "function Sum(x,y) => x + y;",
         "Sum(1,2);",
         "Mul(1,2);",
         "let a = 2 in let a = true in a;",
@@ -26,15 +26,15 @@ class Program
         "fact(sin(0)+cos(0)+4+E-E);",
         "if (2+3) 1 else 0;"
     };
-    public static void Main(string[] args)
+    public static void Main(string[] args) //Ejecucion principal del programa
     {
 
-        // foreach (var input in inputs)
-        while (true)
+        foreach (var input in inputs)
+        // while (true)
         {
-            Console.Write("> ");
-            var input = Console.ReadLine();
-            // Console.WriteLine($"> {input}");
+            // Console.Write("> ");
+            // var input = Console.ReadLine();
+            Console.WriteLine($"> {input}");
             try
             {
                 if (string.IsNullOrEmpty(input))

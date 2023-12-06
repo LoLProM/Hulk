@@ -1,12 +1,14 @@
 namespace HulkProject;
 
 public static class StandardLibrary
+//Clase estatica donde tenemos el control de las funciones que ya tiene el lenguaje y las variables como Pi y E
 {
     public static Dictionary<string, FunctionDeclarationExpression?> Functions = StandardLibrary.GetStandardLibraryFunctions()!;
 
     public static Scope Variables = GetStandardLibraryVariables();
 
     private static Scope GetStandardLibraryVariables()
+    //Una vez corra el programa ya estas variables estaran definidas esto nos permite una facilidad para agregar variables o funciones
     {
         var variables = new Scope();
         variables.AddVariable("PI", Math.PI);

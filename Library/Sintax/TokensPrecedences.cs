@@ -1,6 +1,7 @@
 namespace HulkProject;
 
 public static class TokensPrecedences
+//Aqui organizamos la precedencia de cada operador
 {
     public static int GetUnaryOperatorPrecedence(TokenType type)
     {

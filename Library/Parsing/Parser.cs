@@ -1,6 +1,7 @@
 namespace HulkProject;
 
 class Parser
+//Segundo paso para el interpreter devolver el arbol de sintaxis abstracta
 {
     private int position;
     private List<Token> tokens;
@@ -11,7 +12,7 @@ class Parser
     }
     private Token CurrentToken => LookAhead(0);
     private Token NextToken => LookAhead(1);
-    private Token LookAhead(int offset)
+    private Token LookAhead(int offset)//Metodo auxiliar para revisar segun el offset el token correspondiente
     {
         var index = position + offset;
         if (index >= tokens.Count)
@@ -21,28 +22,30 @@ class Parser
         return tokens[index];
     }
     private Token TokenAhead()
+    //Consumimos token
     {
         var currentToken = CurrentToken;
         position++;
         return currentToken;
     }
     private Token MatchToken(TokenType type)
+    //Verificamos el token que estamos esperando si es el correcto lo consumimos sino lanzamos un error
     {
         if (CurrentToken.Type == type)
         {
             return TokenAhead();
         }
-        throw new Exception($"!SYNTAX ERROR : Not find {type} after {LookAhead(-1).Type} {LookAhead(-1).Text} in position {position}");
+        throw new Exception($"!SYNTAX ERROR : Not find {type} after {LookAhead(-1).Type}");
     }
 
-    public ASTree Parse()
+    public ASTree Parse()//Metodo encargado de comenzar el parseo
     {
         Scope scope = new Scope();
         var expression = ParseAny();
         var endOfFileToken = MatchToken(TokenType.EndOffLineToken);
         return new ASTree(expression, endOfFileToken);
     }
-    private HulkExpression ParseAny()
+    private HulkExpression ParseAny()//Como en Hulk no podemos hacer una llamada de una funcion dentro de ninguna expression analizamos primero si es una funcion el input del usuario sino parseamos cualquier otra expresion
     {
         if (CurrentToken.Type is TokenType.FunctionKeyword)
         {
@@ -51,6 +54,7 @@ class Parser
         return ParseExpression();
     }
     private FunctionDeclarationExpression ParseFunctionDeclaration()
+    //Parseamos una declaracion de funcion parseando sus parametros su cuerpo y guardando su nombre si ya esta definida lanzamos error ya que en hulk no se puede redefinir
     {
         var functionKeyword = MatchToken(TokenType.FunctionKeyword);
         var functionName = MatchToken(TokenType.Identifier);
@@ -72,6 +76,7 @@ class Parser
     }
 
     private List<string> ParseParameters()
+    //Parseamos los parametros 
     {
         MatchToken(TokenType.OpenParenthesisToken);
         var parameters = new List<string>();
@@ -100,6 +105,7 @@ class Parser
         return parameters;
     }
     private HulkExpression ParseFunctionCall(string identifier)
+    //Parseamos una llamada de funcion analizando cada uno de sus argumentos y parseandolos y los vamos almacenando en una lista de hulk expresion
     {
         TokenAhead();
         var parameters = new List<HulkExpression>();
@@ -124,6 +130,7 @@ class Parser
         return new FunctionCallExpression(identifier, parameters);
     }
     private HulkExpression ParseIdentifierOrFunctionCall()
+    //Analizamos si es un identificador solo o una llamada de funcion
     {
         if (CurrentToken.Type == TokenType.Identifier
         && LookAhead(1).Type == TokenType.OpenParenthesisToken)
@@ -138,6 +145,7 @@ class Parser
         return new HulkLiteralExpression(identifier);
     }
     private HulkExpression ParseLetInExpression()
+    //Parseamos el let expression y luego el in expression siempre revisando que machee cada token let e in
     {
         var letKeyword = MatchToken(TokenType.LetToken);
         var letExpression = ParseLetExpression();
@@ -147,6 +155,7 @@ class Parser
     }
     private LetExpression ParseLetExpression()
     {
+        //Parsear un let seria buscar el identificador y evaluar la expresion a la que esta igualado luego si viene una coma repetimos el proceso ya que seria un hijo del let sino devolvemos la expresion let
         var identifier = MatchToken(TokenType.Identifier);
         var equal = MatchToken(TokenType.SingleEqualToken);
         var expression = ParseExpression();
@@ -164,6 +173,7 @@ class Parser
     }
     private HulkExpression ParseIfElseExpression()
     {
+        //Parseamos la condicion luego el statement luego verificamos si viene la palabra else ya que en hulk es de estricto cumplimiento que un if else expresion contenga la keyword else y luego evaluamos el else
         var ifKeyword = MatchToken(TokenType.IfKeyword);
         var condition = ParseExpression();
         var ifStatement = ParseExpression();
@@ -173,6 +183,7 @@ class Parser
     }
     private HulkExpression ParseExpression(int actualPrecedence = 0)
     {
+        //Aqui analizamos expresiones binarias, primero chequeamos la parte izquierda que puede ser cualquier tipo de expression de ahi la recursividad del parser buscamos el operador y analizamos de igual manera la derecha y revisando siempre la precedencia de cada operador para crear el arbol de sintaxis abstracta correcto
         HulkExpression left;
         var unaryOperatorPrecedence = TokensPrecedences.GetUnaryOperatorPrecedence(CurrentToken.Type);
         if (unaryOperatorPrecedence != 0 && unaryOperatorPrecedence >= actualPrecedence)
@@ -200,7 +211,7 @@ class Parser
         }
         return left;
     }
-    private HulkExpression ParsePrimary()
+    private HulkExpression ParsePrimary()//Este metodo analiza el tipo de parseo que se va a efectuar segun el token actual
     {
         switch (CurrentToken.Type)
         {
@@ -224,6 +235,7 @@ class Parser
         }
     }
     private HulkExpression ParseParenthesizedExpression()
+    //Parseamos los parentesis
     {
         var left = TokenAhead();
         var expression = ParseExpression();
@@ -232,18 +244,21 @@ class Parser
     }
     private HulkExpression ParseString()
     {
+        //Parseamos un string
         var stringToken = MatchToken(TokenType.StringToken);
         var resultStringToken = stringToken.Text[1..^1];//Obtener el string sin comillas
         return new HulkLiteralExpression(stringToken, resultStringToken);
     }
     private HulkExpression ParseNumber()
     {
+        //Parseamos un numero
         var number = MatchToken(TokenType.NumberToken);
         var doubleNumber = Convert.ToDouble(number.Value);
         return new HulkLiteralExpression(number, doubleNumber);
     }
     private HulkExpression ParseBoolean()
     {
+        //Parseamos un booleano
         var keyword = TokenAhead();
         var booleanExpression = keyword.Type == TokenType.TrueKeyword;
         return new HulkLiteralExpression(keyword, booleanExpression);

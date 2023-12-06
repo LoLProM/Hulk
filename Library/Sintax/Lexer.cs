@@ -3,11 +3,13 @@ namespace HulkProject;
 using System.Text.RegularExpressions;
 
 class Lexer
+//Esta clase representa el primer paso del interprete aqui se tokeniza la entrada y se devuelve una lista de tokens
 {
     public List<Token> Tokens = new List<Token>();
     int position = 0;
     public Lexer(string textInput)
     {
+        //Se utilizo regex para mas comodidad a la hora de recibir el input del usuario
         textInput = Regex.Replace(textInput, @"\s+", " ");
 
         Regex SyntaxTokens = new(@"\d+[^\D]|^-{0,1}\d+$|^-{0,1}\d+\.\d+E(\+|-)\d+$|^-{0,1}\d+\.\d+$|\+|\-|\*|\^|%|\(|\)|(=>)|(>=)|(<=)|<[=]{0}|>[=]{0}|!=|;|,|={1,2}|!|\&|\||(\u0022([^\u0022\\]|\\.)*\u0022)|@|[a-zA-Z]+\w*|/|[^\(\)\+\-\*/\^%<>=!&\|,;\s]+");
@@ -16,11 +18,13 @@ class Lexer
 
         foreach (Match match in SyntaxTokens.Matches(textInput))
         {
+            //Por cada matcheo vamos viendo que tipo de token es el actual y lo vamos ubicando en la lista
             var token = GetToken(match);
             Tokens.Add(token);
         }
     }
     private Token GetToken(Match match)
+    //Metodo encargado de analizar cada token
     {
         if (IsNumber(match))
         {

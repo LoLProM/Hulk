@@ -2,6 +2,8 @@ namespace HulkProject;
 
 public class HulkUnaryExpression : HulkExpression
 {
+//Esta clase representa que es una expresion unaria el tipo de la expresion sigue el mismo criterio de la binaria
+
     public HulkUnaryExpression(Token operatorToken, HulkExpression internalExpression)
     {
         OperatorToken = operatorToken;

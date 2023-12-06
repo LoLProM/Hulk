@@ -1,6 +1,6 @@
 namespace HulkProject;
 
-public class HulkEvaluator
+public class HulkEvaluator //Evaluador del hulk
 {
     private int Count;
     private readonly int stackOverflow = 1000;
@@ -14,7 +14,7 @@ public class HulkEvaluator
         Scope scope = StandardLibrary.Variables;
         return EvaluateExpression(_node, scope);
     }
-    private object EvaluateExpression(HulkExpression node, Scope scope)
+    private object EvaluateExpression(HulkExpression node, Scope scope) //Aqui analizamos nodo por nodo del arbol y vamos evaluando cada nodo siempre teniendo el scope para poder utilizar todas las variables y tener control de que ha sido definido y que no
     {
         Count++;
         if (Count > stackOverflow)
@@ -44,11 +44,12 @@ public class HulkEvaluator
         throw new Exception($"! SYNTAX ERROR : Unexpected node {node}");
     }
 
-    private object EvaluateFunctionReference(FunctionReference functionReference, Scope scope)
+    private object EvaluateFunctionReference(FunctionReference functionReference, Scope scope)//Aqui evaluamos las funciones intrinsecas del lenguaje como sen, cos,log...
     {
         return functionReference.Eval(scope);
     }
 
+    //Cuando evaluamos una llamada de funcion vamos revisando si tenemos ya la funcion definida en las funciones que estan almacenadas libreria standard 
     private object EvaluateFunctionCallExpression(FunctionCallExpression functionCallExpression, Scope scope)
     {
         if (!StandardLibrary.Functions.ContainsKey(functionCallExpression.FunctionName))
@@ -60,7 +61,7 @@ public class HulkEvaluator
         {
             throw new Exception($"!FUNCTION ERROR : Function {functionCallExpression.FunctionName} does not have {functionCallExpression.Parameters.Count} parameters but {StandardLibrary.Functions[functionCallExpression.FunctionName]?.Arguments.Count} parameters");
         }
-
+        //En caso de existir y que la cantidad de argumentos sea la misma que la cantidad de parametros de la declaracion de dicha funcion entonces evaluamos
         var parameters = functionCallExpression.Parameters;
         var arguments = functionDeclaration.Arguments;
 
@@ -75,12 +76,14 @@ public class HulkEvaluator
     }
     private object EvaluateLetInExpression(Let_In_Expression letInExpression, Scope scope)
     {
+        //Evaluamos el let expression y obtenemos un scope(ambito) que sera el utilizado en la expresion del in
         var inScope = EvaluateLetExpression(letInExpression.LetExpression, scope);
         var inExpression = EvaluateExpression(letInExpression.InExpression, inScope);
         return inExpression;
     }
     private Scope EvaluateLetExpression(LetExpression letExpression, Scope scope)
     {
+        //Vamos evaluando recursivo si tenemos un hijo del let sino simplemente retornamos el scope el caso base en algun momento llegara ya q se acabaran los hijos
         var evaluateLetExpression = EvaluateExpression(letExpression.Expression, scope.BuildChildScope());
         scope.AddVariable(letExpression.Identifier.Text, evaluateLetExpression);
         if (letExpression.LetChildExpression is null)
@@ -91,6 +94,7 @@ public class HulkEvaluator
     }
 
     private object EvaluateIfElseStatement(If_ElseStatement ifElseStatement, Scope scope)
+    //Evaluamos la condicion del if si se cumple evaluamos el cuerpo sino el else
     {
         var condition = EvaluateExpression(ifElseStatement.IfCondition, scope.BuildChildScope());
         bool boolCondition = false;
@@ -104,7 +108,7 @@ public class HulkEvaluator
             return EvaluateExpression(ifElseStatement.ElseClause, scope.BuildChildScope());
         }
     }
-    private static bool CheckBooleanType(object condition)
+    private static bool CheckBooleanType(object condition)//Verificamos si la condition es de tipo booleano 
     {
         bool boolCondition;
         if (condition.GetType() == typeof(bool))
@@ -119,6 +123,7 @@ public class HulkEvaluator
     }
     private object EvaluateParenthesesExpression(HulkParenthesesExpression parenthesesExpression, Scope scope)
     {
+        //Evaluamos la expresion dentro del parentesis
         return EvaluateExpression(parenthesesExpression.InsideExpression, scope.BuildChildScope());
     }
     private object EvaluateUnaryExpression(HulkUnaryExpression unary, Scope scope)
@@ -141,6 +146,7 @@ public class HulkEvaluator
     }
     private object EvaluateBinaryExpression(HulkBinaryExpression binaryExpression, Scope scope)
     {
+        //Evaluamos la izquierda de la expresion luego la derecha y verificamos el tipo del operador y evaluamos siempre chequeando que los tipos de la izquierda y derecha sean del mismo tipo a la hora de evaluar con un operador en especifico
         var left = EvaluateExpression(binaryExpression.Left, scope);
         var right = EvaluateExpression(binaryExpression.Right, scope);
 
@@ -196,6 +202,7 @@ public class HulkEvaluator
     }
     private object EvaluateLiteralExpression(HulkLiteralExpression literal, Scope scope)
     {
+        //Evaluamos la expresion literal devolviendo su valor en el scope si es un identificador sino es el propio valor del literal
         if (literal.LiteralToken.Type is TokenType.Identifier)
         {
             return scope.GetValue(literal.LiteralToken.Text);

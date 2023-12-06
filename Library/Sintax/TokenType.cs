@@ -1,5 +1,6 @@
 namespace HulkProject;
 
+//Enun que contiene todos los tipos de token del lenguaje
 public enum TokenType
 {
     //Tokens
